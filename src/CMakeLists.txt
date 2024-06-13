@@ -1,0 +1,39 @@
+include(GNUInstallDirs)
+
+add_subdirectory(utils)
+
+
+add_executable(atomic_benchmark AtomicBenchmark.cpp)
+target_link_libraries(atomic_benchmark testing_lib)
+
+add_executable(callback_benchmark CallbackBenchmark.cpp)
+target_link_libraries(callback_benchmark testing_lib)
+
+add_executable(callback_queue_benchmark CallbackQueueBenchmark.cpp)
+target_link_libraries(callback_queue_benchmark testing_lib)
+
+add_executable(thread_synchronization_benchmark ThreadSynchronizationBenchmark.cpp)
+target_link_libraries(thread_synchronization_benchmark testing_lib)
+
+add_executable(thread_synchronization_test ThreadSynchronizationTest.cpp)
+target_link_libraries(thread_synchronization_test testing_lib)
+
+add_executable(future_benchmark FutureBenchmark.cpp)
+target_link_libraries(future_benchmark testing_lib)
+
+add_executable(future_tests FutureTests.cpp)
+target_link_libraries(future_tests testing_lib)
+
+add_executable(mutex_benchmark MutexBenchmark.cpp)
+target_link_libraries(mutex_benchmark testing_lib)
+
+add_executable(queue_benchmark QueueBenchmark.cpp)
+target_link_libraries(queue_benchmark testing_lib)
+
+add_executable(smartptr_benchmark SmartPtrBenchmark.cpp)
+
+add_executable(time_utils_benchmark TimeUtilsBenchmark.cpp)
+target_link_libraries(time_utils_benchmark testing_lib)
+
+add_executable(tuple_benchmark TupleBenchmark.cpp)
+target_link_libraries(tuple_benchmark testing_lib)
