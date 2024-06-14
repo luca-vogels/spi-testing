@@ -2,6 +2,7 @@ set(TESTING_SRC
   CallbackQueueLock.hpp
   CallbackQueueNaive.hpp
   CallbackQueueRecycle.hpp
+  CallbackQueueTwoParty.hpp
   FlowRepresentation.hpp
   FlowRepresentation.cpp
   Future.hpp

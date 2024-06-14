@@ -1,28 +1,28 @@
 /**
- * Concurrent queue specifically designed for use with callbacks.
+ * Concurrent non-blocking queue specifically designed for use with callbacks.
  * 
- * @file CallbackQueueLock.hpp
+ * @file CallbackQueueTwoParty.hpp
  * @author Luca Vogels (github@luca-vogels.com)
  */
 
-#ifndef CALLBACK_QUEUE_LOCK_HPP
-#define CALLBACK_QUEUE_LOCK_HPP
+#ifndef CALLBACK_QUEUE_TWO_PARTY_HPP
+#define CALLBACK_QUEUE_TWO_PARTY_HPP
 
-#include <mutex>
+#include "./ThreadSynchronization.hpp"
+
 #include <string>
 
 namespace spi {
 
 
-using QueueableCallback = bool(*)();
 
-
-class CallbackQueueLock {
+template<typename Callback, typename... Args>
+class CallbackQueueTwoParty {
 protected:
 
     class Entry {
     public:
-        QueueableCallback callback = nullptr;
+        Callback callback = nullptr;
         Entry* next = nullptr;
 
         std::string toString() const {
@@ -34,18 +34,23 @@ protected:
 
     Entry* head = nullptr;
     Entry* tail = nullptr;
-    bool executing = false;
-    std::mutex mutex;
+    ReadOrWriteAccess access;
 
 public:
 
-    ~CallbackQueueLock(){
-        std::lock_guard<std::mutex> lock(this->mutex);
+    ~CallbackQueueTwoParty(){
+        cancelAll();
+    }
+
+
+    void cancelAll(){
+        access.accessWrite();
         while(this->head != nullptr){
             Entry* oldHead = this->head;
             this->head = oldHead->next;
             delete oldHead;
         }
+        access.releaseWrite();
     }
 
     
@@ -58,17 +63,17 @@ public:
      * 
      * @param callback Callback that will be queued and executed later.
      */
-    void push(QueueableCallback callback){
+    void push(Callback callback){
+        access.accessRead();
         Entry* entry = new Entry();
         entry->callback = callback;
-        std::lock_guard<std::mutex> lock(this->mutex);
-        Entry *oldTail = this->tail;
-        this->tail = entry;
-        if(oldTail == nullptr) {
-            this->head = entry;
+        if(this->tail != nullptr){
+            this->tail->next = entry;
         } else {
-            oldTail->next = entry;
+            this->head = entry;
         }
+        this->tail = entry;
+        access.releaseRead();
     }
 
     /**
@@ -81,37 +86,27 @@ public:
      * 
      * This method is thread safe.
      * 
+     * @param args Arguments that will be passed to the callback functions.
      * @return True if all callbacks got successfully executed and no more are left in the queue.
      */
-    bool execute(){
-        std::unique_lock<std::mutex> lock(this->mutex);
-        if(this->executing) return true;
-        this->executing = true;
-        lock.unlock();
-        
-        bool hasMore = this->head != nullptr;
-        while(hasMore){
-            if(this->head->callback()) {
-                lock.lock();
+    bool execute(Args... args){
+        access.accessWrite();
+        while(this->head != nullptr){
+            if(this->head->callback(args...)) {
                 Entry *oldHead = this->head;
-                this->head = oldHead->next; 
-                if(this->head == nullptr)
-                    this->tail = nullptr;
-
+                this->head = oldHead->next;
                 delete oldHead;
-
-                hasMore = this->head != nullptr;
-                lock.unlock();
             } else {
-                break;
+                access.releaseWrite();
+                return false;
             }
         }
-        return !hasMore;
+        access.releaseWrite();
+        return true;
     }
 
-    std::string toString() {
-        std::lock_guard<std::mutex> lock(this->mutex);
-        return "CallbackQueueLock{ head="+(head != nullptr ? head->toString() : "nullptr")+
+    std::string toString() const {
+        return "CallbackQueueTwoParty{ head="+(head != nullptr ? head->toString() : "nullptr")+
                                 "; tail="+(tail != nullptr ? tail->toString() : "nullptr")+" }";
     }
 };
@@ -119,4 +114,4 @@ public:
 
 }
 
-#endif // CALLBACK_QUEUE_LOCK_HPP
+#endif // CALLBACK_QUEUE_TWO_PARTY_HPP

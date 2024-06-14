@@ -9,15 +9,19 @@
 #define CALLBACK_QUEUE_RECYCLE_HPP
 
 #include <atomic>
-#include <functional>
+
 
 namespace spi {
+
+
+using QueueableCallback = bool(*)();
+
 
 class CallbackQueueRecycle {
 protected:
 
     struct Entry {
-        std::function<bool()> callback;
+        QueueableCallback callback;
         Entry* next = nullptr;
     };
 
@@ -57,7 +61,7 @@ public:
      * 
      * @param callback Callback that will be queued and executed later.
      */
-    void push(std::function<bool()> callback){
+    void push(QueueableCallback callback){
         
         // get entry from pool or create new one
         Entry *entry = nullptr, *tmp = nullptr;

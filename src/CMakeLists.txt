@@ -9,6 +9,9 @@ target_link_libraries(atomic_benchmark testing_lib)
 add_executable(callback_benchmark CallbackBenchmark.cpp)
 target_link_libraries(callback_benchmark testing_lib)
 
+add_executable(callback_example CallbackExample.cpp)
+target_link_libraries(callback_example testing_lib)
+
 add_executable(callback_queue_benchmark CallbackQueueBenchmark.cpp)
 target_link_libraries(callback_queue_benchmark testing_lib)
 

@@ -9,17 +9,20 @@
 #define CALLBACK_QUEUE_NAIVE_HPP
 
 #include <atomic>
-#include <functional>
 #include <string>
 
 namespace spi {
+
+
+using QueueableCallback = bool(*)();
+
 
 class CallbackQueueNaive {
 protected:
 
     class Entry {
     public:
-        std::function<bool()> callback = nullptr;
+        QueueableCallback callback = nullptr;
         Entry* next = nullptr;
 
         std::string toString() const {
@@ -53,7 +56,7 @@ public:
      * 
      * @param callback Callback that will be queued and executed later.
      */
-    void push(std::function<bool()> callback){
+    void push(QueueableCallback callback){
         Entry* entry = new Entry();
         entry->callback = callback;
         Entry* oldTail = this->tail.exchange(entry);
