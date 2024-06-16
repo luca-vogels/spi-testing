@@ -39,6 +39,8 @@ struct CallbackAndArgsTupleCat {
 };
 
 
+
+
 // std::index_sequence with helper (WINNER)
 template<typename Callback, typename... Args>
 struct CallbackAndArgsIndexSequenceWithHelper {
@@ -90,8 +92,8 @@ void exampleFunction1(size_t a) {
 }
 
 // Example functions to be used as callbacks
-void exampleFunction2(size_t a, std::string& b) {
-    size_t c = a + b.size();
+void exampleFunction2(size_t a, size_t b) {
+    size_t c = a + b;
     (void)c;
 }
 
@@ -100,23 +102,23 @@ void exampleFunction2(size_t a, std::string& b) {
 
 int main() {
     const size_t ITERATIONS = 50000000;
-    std::string strValue = "Hello";
+    size_t additionalValue = 42; // can be of any type
 
     CallbackAndNoArgs<void(*)(size_t)> cb1NoArgs(exampleFunction1);
-    // not possible: CallbackAndNoArgs<void(*)(size_t, std::string)> cb2NoArgs(exampleFunction2);
+    // not possible: CallbackAndNoArgs<void(*)(size_t, size_t)> cb2NoArgs(exampleFunction2);
 
     CallbackAndArgsTupleCat<void(*)(size_t)> cb1TupleCat(exampleFunction1);
-    CallbackAndArgsTupleCat<void(*)(size_t, std::string&), std::string> cb2TupleCat(exampleFunction2, strValue);
+    CallbackAndArgsTupleCat<void(*)(size_t, size_t), size_t> cb2TupleCat(exampleFunction2, additionalValue);
 
     CallbackAndArgsIndexSequenceWithHelper<void(*)(size_t)> cb1IndexSequenceWithHelper(exampleFunction1);
-    CallbackAndArgsIndexSequenceWithHelper<void(*)(size_t, std::string&), std::string> cb2IndexSequenceWithHelper(exampleFunction2, strValue);
+    CallbackAndArgsIndexSequenceWithHelper<void(*)(size_t, size_t), size_t> cb2IndexSequenceWithHelper(exampleFunction2, additionalValue);
 
     CallbackAndArgsIndexSequenceNoHelper<void(*)(size_t)> cb1IndexSequenceNoHelper(exampleFunction1);
-    CallbackAndArgsIndexSequenceNoHelper<void(*)(size_t, std::string&), std::string> cb2IndexSequenceNoHelper(exampleFunction2, strValue);
+    CallbackAndArgsIndexSequenceNoHelper<void(*)(size_t, size_t), size_t> cb2IndexSequenceNoHelper(exampleFunction2, additionalValue);
     
 
 
-    // NoDynamicArgs(void):                 ~ 165.3 Mio/sec
+    // NoDynamicArgs(void):                 ~ 168.0 Mio/sec
     auto start = std::chrono::high_resolution_clock::now();
     for (size_t i = 0; i < ITERATIONS; ++i) {
         cb1NoArgs.execute(i);
@@ -134,7 +136,7 @@ int main() {
     end = std::chrono::high_resolution_clock::now();
     std::cout << "TupleCat(void): " << (ITERATIONS * 1000000) / std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() << "/s" << std::endl;
     
-    // TupleCat(std::string):                   ~ 3.6 Mio/sec
+    // TupleCat(std::string):                   ~ 6.8 Mio/sec
     start = std::chrono::high_resolution_clock::now();
     for (size_t i = 0; i < ITERATIONS; ++i) {
         cb2TupleCat.execute(i);
@@ -144,7 +146,7 @@ int main() {
 
 
 
-    // IndexSequenceWithHelper(void):           ~ 124.8 Mio/sec
+    // IndexSequenceWithHelper(void):           ~ 126.6 Mio/sec
     start = std::chrono::high_resolution_clock::now();
     for (size_t i = 0; i < ITERATIONS; ++i) {
         cb1IndexSequenceWithHelper.execute(i);
@@ -152,7 +154,7 @@ int main() {
     end = std::chrono::high_resolution_clock::now();
     std::cout << "IndexSequenceWithHelper(void): " << (ITERATIONS * 1000000) / std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() << "/s" << std::endl;
 
-    // IndexSequenceWithHelper(std::string):    ~ 43.2 Mio/sec
+    // IndexSequenceWithHelper(std::string):    ~ 49.2 Mio/sec
     start = std::chrono::high_resolution_clock::now();
     for (size_t i = 0; i < ITERATIONS; ++i) {
         cb2IndexSequenceWithHelper.execute(i);
@@ -162,7 +164,7 @@ int main() {
 
 
 
-    // IndexSequenceNoHelper(void):           ~ 34.2 Mio/sec
+    // IndexSequenceNoHelper(void):           ~ 33.6 Mio/sec
     start = std::chrono::high_resolution_clock::now();
     for (size_t i = 0; i < ITERATIONS; ++i) {
         cb1IndexSequenceNoHelper.execute(i);
@@ -170,7 +172,7 @@ int main() {
     end = std::chrono::high_resolution_clock::now();
     std::cout << "IndexSequenceNoHelper(void): " << (ITERATIONS * 1000000) / std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() << "/s" << std::endl;
 
-    // IndexSequenceNoHelper(std::string):    ~ 6.4 Mio/sec
+    // IndexSequenceNoHelper(std::string):    ~ 22.6 Mio/sec
     start = std::chrono::high_resolution_clock::now();
     for (size_t i = 0; i < ITERATIONS; ++i) {
         cb2IndexSequenceNoHelper.execute(i);
