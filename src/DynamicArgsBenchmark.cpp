@@ -15,7 +15,7 @@ struct CallbackAndNoArgs {
         : callback(cb) {}
 
     // Execute the stored callback with its arguments, including the mandatory size_t
-    void execute(size_t mandatoryArg) {
+    void execute(size_t mandatoryArg){
         callback(mandatoryArg);
     }
 };
@@ -32,35 +32,54 @@ struct CallbackAndArgsTupleCat {
         : callback(cb), args(std::make_tuple(arguments...)) {}
 
     // Execute the stored callback with its arguments, including the mandatory size_t
-    void execute(size_t mandatoryArg) {
+    void execute(size_t mandatoryArg){
         auto fullArgs = std::tuple_cat(std::make_tuple(mandatoryArg), args);
         std::apply(callback, fullArgs);
     }
 };
 
 
-// std::index_sequence
+// std::index_sequence with helper (WINNER)
 template<typename Callback, typename... Args>
-struct CallbackAndArgsIndexSequence {
+struct CallbackAndArgsIndexSequenceWithHelper {
     Callback callback;
     std::tuple<Args...> args;
 
     // Constructor
-    CallbackAndArgsIndexSequence(Callback cb, Args... arguments)
+    CallbackAndArgsIndexSequenceWithHelper(Callback cb, Args... arguments)
         : callback(cb), args(std::make_tuple(arguments...)) {}
 
     // Helper function to invoke the callback with the mandatory size_t and additional args
     template <std::size_t... I>
-    void invoke(std::index_sequence<I...>, size_t mandatoryArg) {
+    void invoke(std::index_sequence<I...>, size_t mandatoryArg){
         callback(mandatoryArg, std::get<I>(args)...);
     }
 
     // Execute the stored callback with its arguments, including the mandatory size_t
-    void execute(size_t mandatoryArg) {
+    void execute(size_t mandatoryArg){
         invoke(std::index_sequence_for<Args...>{}, mandatoryArg);
     }
 };
 
+
+
+// std::index_sequence with lambda
+template<typename Callback, typename... Args>
+struct CallbackAndArgsIndexSequenceNoHelper {
+    Callback callback;
+    std::tuple<Args...> args;
+
+    // Constructor
+    CallbackAndArgsIndexSequenceNoHelper(Callback cb, Args... arguments)
+        : callback(cb), args(std::make_tuple(arguments...)) {}
+
+    // Execute the stored callback with its arguments, including the mandatory size_t
+    void execute(size_t mandatoryArg){
+        std::apply([this, mandatoryArg](auto... indices) {
+            callback(mandatoryArg, indices...);
+        }, args);
+    }
+};
 
 
 
@@ -89,12 +108,15 @@ int main() {
     CallbackAndArgsTupleCat<void(*)(size_t)> cb1TupleCat(exampleFunction1);
     CallbackAndArgsTupleCat<void(*)(size_t, std::string&), std::string> cb2TupleCat(exampleFunction2, strValue);
 
-    CallbackAndArgsIndexSequence<void(*)(size_t)> cb1IndexSequence(exampleFunction1);
-    CallbackAndArgsIndexSequence<void(*)(size_t, std::string&), std::string> cb2IndexSequence(exampleFunction2, strValue);
+    CallbackAndArgsIndexSequenceWithHelper<void(*)(size_t)> cb1IndexSequenceWithHelper(exampleFunction1);
+    CallbackAndArgsIndexSequenceWithHelper<void(*)(size_t, std::string&), std::string> cb2IndexSequenceWithHelper(exampleFunction2, strValue);
+
+    CallbackAndArgsIndexSequenceNoHelper<void(*)(size_t)> cb1IndexSequenceNoHelper(exampleFunction1);
+    CallbackAndArgsIndexSequenceNoHelper<void(*)(size_t, std::string&), std::string> cb2IndexSequenceNoHelper(exampleFunction2, strValue);
     
 
 
-    // NoDynamicArgs(void):         ~ 163.3 Mio/sec
+    // NoDynamicArgs(void):                 ~ 165.3 Mio/sec
     auto start = std::chrono::high_resolution_clock::now();
     for (size_t i = 0; i < ITERATIONS; ++i) {
         cb1NoArgs.execute(i);
@@ -104,7 +126,7 @@ int main() {
 
 
 
-    // TupleCat(void):              ~ 8.9 Mio/sec
+    // TupleCat(void):                          ~ 9.1 Mio/sec
     start = std::chrono::high_resolution_clock::now();
     for (size_t i = 0; i < ITERATIONS; ++i) {
         cb1TupleCat.execute(i);
@@ -112,7 +134,7 @@ int main() {
     end = std::chrono::high_resolution_clock::now();
     std::cout << "TupleCat(void): " << (ITERATIONS * 1000000) / std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() << "/s" << std::endl;
     
-    // TupleCat(std::string):       ~ 3.6 Mio/sec
+    // TupleCat(std::string):                   ~ 3.6 Mio/sec
     start = std::chrono::high_resolution_clock::now();
     for (size_t i = 0; i < ITERATIONS; ++i) {
         cb2TupleCat.execute(i);
@@ -122,21 +144,40 @@ int main() {
 
 
 
-    // IndexSequence(void):         ~ 124.8 Mio/sec
+    // IndexSequenceWithHelper(void):           ~ 124.8 Mio/sec
     start = std::chrono::high_resolution_clock::now();
     for (size_t i = 0; i < ITERATIONS; ++i) {
-        cb1IndexSequence.execute(i);
+        cb1IndexSequenceWithHelper.execute(i);
     }
     end = std::chrono::high_resolution_clock::now();
-    std::cout << "IndexSequence(void): " << (ITERATIONS * 1000000) / std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() << "/s" << std::endl;
+    std::cout << "IndexSequenceWithHelper(void): " << (ITERATIONS * 1000000) / std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() << "/s" << std::endl;
 
-    // IndexSequence(std::string):  ~ 43.2 Mio/sec
+    // IndexSequenceWithHelper(std::string):    ~ 43.2 Mio/sec
     start = std::chrono::high_resolution_clock::now();
     for (size_t i = 0; i < ITERATIONS; ++i) {
-        cb2IndexSequence.execute(i);
+        cb2IndexSequenceWithHelper.execute(i);
     }
     end = std::chrono::high_resolution_clock::now();
-    std::cout << "IndexSequence(std::string): " << (ITERATIONS * 1000000) / std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() << "/s" << std::endl;
+    std::cout << "IndexSequenceWithHelper(std::string): " << (ITERATIONS * 1000000) / std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() << "/s" << std::endl;
+
+
+
+    // IndexSequenceNoHelper(void):           ~ 34.2 Mio/sec
+    start = std::chrono::high_resolution_clock::now();
+    for (size_t i = 0; i < ITERATIONS; ++i) {
+        cb1IndexSequenceNoHelper.execute(i);
+    }
+    end = std::chrono::high_resolution_clock::now();
+    std::cout << "IndexSequenceNoHelper(void): " << (ITERATIONS * 1000000) / std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() << "/s" << std::endl;
+
+    // IndexSequenceNoHelper(std::string):    ~ 6.4 Mio/sec
+    start = std::chrono::high_resolution_clock::now();
+    for (size_t i = 0; i < ITERATIONS; ++i) {
+        cb2IndexSequenceNoHelper.execute(i);
+    }
+    end = std::chrono::high_resolution_clock::now();
+    std::cout << "IndexSequenceNoHelper(std::string): " << (ITERATIONS * 1000000) / std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() << "/s" << std::endl;
+
 
     return 0;
 }
