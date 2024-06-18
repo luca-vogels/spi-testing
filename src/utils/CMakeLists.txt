@@ -14,6 +14,7 @@ set(TESTING_SRC
   QueueRing.hpp
   QueueTwoParty.hpp
   RecycleObjectStoreBitmap.hpp
+  RecycleObjectStoreQueue.hpp
   RecycleObjectStoreVector.hpp
   Thread.hpp
   TimeUtils.hpp
