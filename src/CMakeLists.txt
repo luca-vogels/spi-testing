@@ -36,6 +36,12 @@ target_link_libraries(mutex_benchmark testing_lib)
 add_executable(queue_benchmark QueueBenchmark.cpp)
 target_link_libraries(queue_benchmark testing_lib)
 
+add_executable(recycle_object_store_benchmark RecycleObjectStoreBenchmark.cpp)
+target_link_libraries(recycle_object_store_benchmark testing_lib)
+
+add_executable(recycle_object_store_test RecycleObjectStoreTest.cpp)
+target_link_libraries(recycle_object_store_test testing_lib)
+
 add_executable(smartptr_benchmark SmartPtrBenchmark.cpp)
 
 add_executable(time_utils_benchmark TimeUtilsBenchmark.cpp)

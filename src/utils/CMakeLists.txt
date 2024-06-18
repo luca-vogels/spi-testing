@@ -12,6 +12,9 @@ set(TESTING_SRC
   QueueLock.hpp
   QueueMoodyCamel.hpp
   QueueRing.hpp
+  QueueTwoParty.hpp
+  RecycleObjectStoreBitmap.hpp
+  RecycleObjectStoreVector.hpp
   Thread.hpp
   TimeUtils.hpp
   Tuple.hpp
