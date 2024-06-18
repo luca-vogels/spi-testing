@@ -26,17 +26,26 @@ int main(){
     const uint64_t ITERATIONS = 50000000;
 
 
-    // new MyClass():    ~ 55 Mio/sec
+    // MyClass():               ~ 200.9 Mio/sec
     auto startTime = std::chrono::high_resolution_clock::now();
+    for(uint64_t i=0; i < ITERATIONS; i++){
+        MyClass myClass;
+        myClass.doSomething();
+    }
+    auto endTime = std::chrono::high_resolution_clock::now();
+    std::cout << "MyClass(): " << (ITERATIONS * 1000000) / std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count() << "/s" << std::endl;
+
+    // new MyClass():           ~ 54.9 Mio/sec
+    startTime = std::chrono::high_resolution_clock::now();
     for(uint64_t i=0; i < ITERATIONS; i++){
         MyClass *myClass = new MyClass();
         myClass->doSomething();
         delete myClass;
     }
-    auto endTime = std::chrono::high_resolution_clock::now();
+    endTime = std::chrono::high_resolution_clock::now();
     std::cout << "new MyClass(): " << (ITERATIONS * 1000000) / std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count() << "/s" << std::endl;
 
-        // unique_ptr<MyClass>:   ~ 9.2 Mio/sec
+    // unique_ptr<MyClass>:     ~ 9.2 Mio/sec
     startTime = std::chrono::high_resolution_clock::now();
     for(uint64_t i=0; i < ITERATIONS; i++){
         std::unique_ptr<MyClass> myClass = std::make_unique<MyClass>();
@@ -46,7 +55,7 @@ int main(){
     std::cout << "unique_ptr<MyClass>: " << (ITERATIONS * 1000000) / std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count() << "/s" << std::endl;
 
 
-    // shared_ptr<MyClass>:   ~ 4.4 Mio/sec
+    // shared_ptr<MyClass>:     ~ 4.3 Mio/sec
     startTime = std::chrono::high_resolution_clock::now();
     for(uint64_t i=0; i < ITERATIONS; i++){
         std::shared_ptr<MyClass> myClass = std::make_shared<MyClass>();
