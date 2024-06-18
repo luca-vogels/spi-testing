@@ -1,7 +1,8 @@
 /**
- * RecycleObjectStore stores a dynamic amount of object that can be aquired and released again for reuse.
- * This is much more starter instead of creating and deleting objects all the time if the objects would 
- * be stored on the heap otherwise.
+ * RecycleObjectStore stores a dynamic amount of objects that can be aquired and released again for reuse.
+ * This is much faster than creating and deleting objects all the time.
+ * 
+ * IMPORTANT: only use if you cannot store objects on the heap.
  * 
  * @file RecycleObjectStore.hpp
  * @author Luca Vogels (github@luca-vogels.com)

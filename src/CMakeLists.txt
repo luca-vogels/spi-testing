@@ -6,6 +6,9 @@ add_subdirectory(utils)
 add_executable(atomic_benchmark AtomicBenchmark.cpp)
 target_link_libraries(atomic_benchmark testing_lib)
 
+add_executable(atomic_create_vs_reuse_benchmark AtomicCreateVsReuseBenchmark.cpp)
+target_link_libraries(atomic_create_vs_reuse_benchmark testing_lib)
+
 add_executable(callback_benchmark CallbackBenchmark.cpp)
 target_link_libraries(callback_benchmark testing_lib)
 

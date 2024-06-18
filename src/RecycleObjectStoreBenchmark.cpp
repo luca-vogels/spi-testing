@@ -22,13 +22,13 @@ int main(){
     RecycleObjectStoreVector<TestStruct> storeVector;
 
 
-    // CONCLUSION:  not sure if you should use this at all and simply use new/delete instead ...
+    // CONCLUSION:  CHOSE RecycleObjectStoreQueue FOR BEST PERFORMANCE
 
 
 
     //                                  RELEASE         vs. DEBUG
 
-    // RecycleObjectStoreBitmap(1):     ~ 68.8 Mio/sec  |   ~ 25.6 Mio/sec
+    // RecycleObjectStoreBitmap(1):     ~ 73.9 Mio/sec  |   ~ 24.7 Mio/sec
     auto startTime = std::chrono::high_resolution_clock::now();
     for(uint64_t i=0; i < ITERATIONS; i++){
         size_t index;
@@ -40,7 +40,7 @@ int main(){
     std::cout << "RecycleObjectStoreBitmap(1): " << (ITERATIONS * 1000000) / std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count() << "/s" << std::endl;
 
 
-    // RecycleObjectStoreQueue(1):      ~ 325.2 Mio/sec |   ~ 16.2 Mio/sec
+    // RecycleObjectStoreQueue(1):      ~ 326.1 Mio/sec |   ~ 16.0 Mio/sec
     startTime = std::chrono::high_resolution_clock::now();
     for(uint64_t i=0; i < ITERATIONS; i++){
         TestStruct *obj = storeQueue.aquire();
@@ -51,7 +51,7 @@ int main(){
     std::cout << "RecycleObjectStoreQueue(1): " << (ITERATIONS * 1000000) / std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count() << "/s" << std::endl;
 
 
-    // RecycleObjectStoreVector(1):     ~ 234.0 Mio/sec |   ~ 5.6 Mio/sec
+    // RecycleObjectStoreVector(1):     ~ 279.5 Mio/sec |   ~ 5.4 Mio/sec
     startTime = std::chrono::high_resolution_clock::now();
     for(uint64_t i=0; i < ITERATIONS; i++){
         size_t index;
@@ -66,9 +66,10 @@ int main(){
 
 
 
-
-    // RecycleObjectStoreBitmap(∞):     ~ 27.1 Mio/sec  |   ~ 6.4 Mio/sec
     std::vector<size_t> indices(OPS_PER_ITERATION);
+    std::vector<TestStruct*> objects(OPS_PER_ITERATION);
+
+    // RecycleObjectStoreBitmap(∞):     ~ 19.7 Mio/sec  |   ~ 5.9 Mio/sec
     startTime = std::chrono::high_resolution_clock::now();
     for(uint64_t i=0; i < ITERATIONS/OPS_PER_ITERATION; i++){
         TestStruct *obj;
@@ -84,16 +85,15 @@ int main(){
     std::cout << "RecycleObjectStoreBitmap(" << OPS_PER_ITERATION << "): " << (ITERATIONS * 1000000) / std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count() << "/s" << std::endl;
 
 
-    // RecycleObjectStoreQueue(∞):      ~ 212.8 Mio/sec |   ~ 15.7 Mio/sec
+    // RecycleObjectStoreQueue(∞):      ~ 225.2 Mio/sec |   ~ 13.6 Mio/sec
     startTime = std::chrono::high_resolution_clock::now();
     for(uint64_t i=0; i < ITERATIONS/OPS_PER_ITERATION; i++){
-        TestStruct *obj;
         for(size_t j=0; j < OPS_PER_ITERATION; j++){
-            obj = storeQueue.aquire();
-            obj->a = obj->b + obj->c;
+            objects[j] = storeQueue.aquire();
+            objects[j]->a = objects[j]->b + objects[j]->c;
         }
         for(size_t j=0; j < OPS_PER_ITERATION; j++){
-            storeQueue.release(obj);
+            storeQueue.release(objects[j]);
         }
     }
     endTime = std::chrono::high_resolution_clock::now();
