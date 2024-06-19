@@ -32,7 +32,7 @@ int main(){
     auto startTime = std::chrono::high_resolution_clock::now();
     for(uint64_t i=0; i < ITERATIONS; i++){
         size_t index;
-        TestStruct *obj = storeBitmap.aquire(index);
+        TestStruct *obj = storeBitmap.acquire(index);
         obj->a = obj->b + obj->c;
         storeBitmap.release(index);
     }
@@ -43,7 +43,7 @@ int main(){
     // RecycleObjectStoreQueue(1):      ~ 326.1 Mio/sec |   ~ 16.0 Mio/sec
     startTime = std::chrono::high_resolution_clock::now();
     for(uint64_t i=0; i < ITERATIONS; i++){
-        TestStruct *obj = storeQueue.aquire();
+        TestStruct *obj = storeQueue.acquire();
         obj->a = obj->b + obj->c;
         storeQueue.release(obj);
     }
@@ -55,7 +55,7 @@ int main(){
     startTime = std::chrono::high_resolution_clock::now();
     for(uint64_t i=0; i < ITERATIONS; i++){
         size_t index;
-        TestStruct *obj = storeVector.aquire(index);
+        TestStruct *obj = storeVector.acquire(index);
         obj->a = obj->b + obj->c;
         storeVector.release(index);
     }
@@ -74,7 +74,7 @@ int main(){
     for(uint64_t i=0; i < ITERATIONS/OPS_PER_ITERATION; i++){
         TestStruct *obj;
         for(size_t j=0; j < OPS_PER_ITERATION; j++){
-            obj = storeBitmap.aquire(indices[j]);
+            obj = storeBitmap.acquire(indices[j]);
             obj->a = obj->b + obj->c;
         }
         for(size_t j=0; j < OPS_PER_ITERATION; j++){
@@ -89,7 +89,7 @@ int main(){
     startTime = std::chrono::high_resolution_clock::now();
     for(uint64_t i=0; i < ITERATIONS/OPS_PER_ITERATION; i++){
         for(size_t j=0; j < OPS_PER_ITERATION; j++){
-            objects[j] = storeQueue.aquire();
+            objects[j] = storeQueue.acquire();
             objects[j]->a = objects[j]->b + objects[j]->c;
         }
         for(size_t j=0; j < OPS_PER_ITERATION; j++){
@@ -105,7 +105,7 @@ int main(){
     for(uint64_t i=0; i < ITERATIONS/OPS_PER_ITERATION; i++){
         TestStruct *obj;
         for(size_t j=0; j < OPS_PER_ITERATION; j++){
-            obj = storeVector.aquire(indices[j]);
+            obj = storeVector.acquire(indices[j]);
             obj->a = obj->b + obj->c;
         }
         for(size_t j=0; j < OPS_PER_ITERATION; j++){

@@ -27,11 +27,11 @@ void testQueue(){
     TestStruct *obj;
     std::queue<TestStruct*> objects;
 
-    // aquire
+    // acquire
     for(size_t i=0; i < 8; i++){
-        obj = store.aquire();
+        obj = store.acquire();
         obj->a = i;
-        std::cout << (i+1) << ". aquired(): " << store.toString() << std::endl; // TODO REMOVE
+        std::cout << (i+1) << ". acquired(): " << store.toString() << std::endl; // TODO REMOVE
         std::cout << " - " << obj << std::endl; // TODO REMOVE
 
         objects.push(obj);
@@ -60,10 +60,10 @@ void testQueue(){
     }
     std::cout << std::endl;
 
-    // aquire
+    // acquire
     for(size_t i=0; i < 6; i++){
-        obj = store.aquire();
-        std::cout << (i+1) << ". aquired(): " << store.toString() << std::endl; // TODO REMOVE
+        obj = store.acquire();
+        std::cout << (i+1) << ". acquired(): " << store.toString() << std::endl; // TODO REMOVE
         std::cout << " - " << obj << std::endl; // TODO REMOVE
 
         if(i < 4){
@@ -99,10 +99,10 @@ void testQueue(){
     }
     std::cout << std::endl;
 
-    // aquire
+    // acquire
     for(size_t i=0; i < 1; i++){
-        obj = store.aquire();
-        std::cout << (i+1) << ". aquired(): " << store.toString() << std::endl; // TODO REMOVE
+        obj = store.acquire();
+        std::cout << (i+1) << ". acquired(): " << store.toString() << std::endl; // TODO REMOVE
         std::cout << " - " << obj << std::endl; // TODO REMOVE
 
         objects.push(obj);
@@ -153,12 +153,12 @@ void testVector(){
     std::queue<size_t> indices;
     std::queue<TestStruct*> objects;
 
-    // aquire
+    // acquire
     for(size_t i=0; i < 8; i++){
         size_t index;
-        obj = store.aquire(index);
+        obj = store.acquire(index);
         obj->a = i;
-        std::cout << (i+1) << ". aquired(" << index << "): " << store.toString([](TestStruct *obj){ return std::to_string(obj->a); }) << std::endl; // TODO REMOVE
+        std::cout << (i+1) << ". acquired(" << index << "): " << store.toString([](TestStruct *obj){ return std::to_string(obj->a); }) << std::endl; // TODO REMOVE
         std::cout << " - " << obj << std::endl; // TODO REMOVE
 
         indices.push(index);
@@ -190,11 +190,11 @@ void testVector(){
     }
     std::cout << std::endl;
 
-    // aquire
+    // acquire
     for(size_t i=0; i < 6; i++){
         size_t index;
-        obj = store.aquire(index);
-        std::cout << (i+1) << ". aquired(" << index << "): " << store.toString([](TestStruct *obj){ return std::to_string(obj->a); }) << std::endl; // TODO REMOVE
+        obj = store.acquire(index);
+        std::cout << (i+1) << ". acquired(" << index << "): " << store.toString([](TestStruct *obj){ return std::to_string(obj->a); }) << std::endl; // TODO REMOVE
         std::cout << " - " << obj << std::endl; // TODO REMOVE
 
         if(i < 4){
@@ -233,11 +233,11 @@ void testVector(){
     }
     std::cout << std::endl;
 
-    // aquire
+    // acquire
     for(size_t i=0; i < 1; i++){
         size_t index;
-        obj = store.aquire(index);
-        std::cout << (i+1) << ". aquired(" << index << "): " << store.toString([](TestStruct *obj){ return std::to_string(obj->a); }) << std::endl; // TODO REMOVE
+        obj = store.acquire(index);
+        std::cout << (i+1) << ". acquired(" << index << "): " << store.toString([](TestStruct *obj){ return std::to_string(obj->a); }) << std::endl; // TODO REMOVE
         std::cout << " - " << obj << std::endl; // TODO REMOVE
 
         indices.push(index);

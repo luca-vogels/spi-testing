@@ -51,7 +51,7 @@ int main(){
     // RecycleObjectStore(1):   ~ 36.1 Mio/sec  |   ~ 11.0 Mio/sec
     startTime = std::chrono::high_resolution_clock::now();
     for(uint64_t i=0; i < ITERATIONS; i++){
-        TestStruct *obj = store.aquire();
+        TestStruct *obj = store.acquire();
         obj->reset();
         obj->gotResponse();
         obj->gotResponse();
@@ -90,7 +90,7 @@ int main(){
     startTime = std::chrono::high_resolution_clock::now();
     for(uint64_t i=0; i < ITERATIONS/OPS_PER_ITERATION; i++){
         for(size_t j=0; j < OPS_PER_ITERATION; j++){
-            objects[j] = store.aquire();
+            objects[j] = store.acquire();
             objects[j]->reset();
             objects[j]->gotResponse();
             objects[j]->gotResponse();

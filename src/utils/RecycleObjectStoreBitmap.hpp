@@ -1,5 +1,5 @@
 /**
- * RecycleObjectStore stores a dynamic amount of objects that can be aquired and released again for reuse.
+ * RecycleObjectStore stores a dynamic amount of objects that can be acquired and released again for reuse.
  * This is much faster than creating and deleting objects all the time.
  * 
  * IMPORTANT: only use if you cannot store objects on the heap.
@@ -38,7 +38,7 @@ public:
     }
 
 
-    inline T* aquire(size_t &index){
+    inline T* acquire(size_t &index){
         for(size_t i=0; i < availability.size(); i++){
             if(availability[i] != 0){
                 for(BitMapEntry b=0; b < bitMapEntrySize; b++){

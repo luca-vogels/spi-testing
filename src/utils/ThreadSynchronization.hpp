@@ -73,7 +73,7 @@ public:
     
     /**
      * Reader will pause until the writer is done 
-     * and will then aquire exlucsive access.
+     * and will then acquire exlucsive access.
      */
     void accessRead(){
         read = true;
@@ -85,7 +85,7 @@ public:
 
     /**
      * Writer will pause until the reader is done
-     * and will then aquire exlucsive access.
+     * and will then acquire exlucsive access.
      */
     void accessWrite(){
         write = true;
