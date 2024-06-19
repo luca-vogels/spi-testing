@@ -165,13 +165,13 @@ void exampleFunction0() {
 
 // Example functions to be used as callbacks
 void exampleFunction1(size_t a) {
-    size_t c = a + a;
+    volatile size_t c = a + a;
     (void)c;
 }
 
 // Example functions to be used as callbacks
 void exampleFunction2(size_t a, size_t b) {
-    size_t c = a + b;
+    volatile size_t c = a + b;
     (void)c;
 }
 
@@ -222,10 +222,12 @@ int main() {
     CallbackWithMandatoryIndexSeqLambda<void(*)(size_t, size_t), size_t> cb2WithMandatoryIndexSeqLambda(exampleFunction2, additionalValue);
     
 
+    //                                                      RELEASE         |   DEBUG
+
 
     // [ REFERENCE ]
 
-    // NoDynamicArgs(void):                                 ~ 171.3 Mio/sec
+    // NoDynamicArgs(void):                                 ~ 1960 Mio/sec  |   ~ 171.3 Mio/sec
     auto start = std::chrono::high_resolution_clock::now();
     for (size_t i = 0; i < ITERATIONS; ++i) {
         cb1NoArgs.execute(i);
@@ -240,7 +242,7 @@ int main() {
 
     // [ NO MANDATORY ARGS ]
 
-    // CallbackNoMandatoryApply(void):                      ~ 38.0 Mio/sec
+    // CallbackNoMandatoryApply(void):                      ~ 1142 Mio/sec  |   ~ 38.0 Mio/sec
     start = std::chrono::high_resolution_clock::now();
     for (size_t i = 0; i < ITERATIONS; ++i) {
         cb1NoMandatoryApply.execute();
@@ -248,7 +250,7 @@ int main() {
     end = std::chrono::high_resolution_clock::now();
     std::cout << "NoMandatoryArgs(void): " << (ITERATIONS * 1000000) / std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() << "/s" << std::endl;
 
-    // CallbackNoMandatoryApply(size_t):                    ~ 24.1 Mio/sec
+    // CallbackNoMandatoryApply(size_t):                    ~ 1559 Mio/sec  |   ~ 24.1 Mio/sec
     start = std::chrono::high_resolution_clock::now();
     for (size_t i = 0; i < ITERATIONS; ++i) {
         cb2NoMandatoryApply.execute();
@@ -258,7 +260,7 @@ int main() {
 
 
 
-    // CallbackNoMandatoryIndexSeqHelper(void):             ~ 137.1 Mio/sec
+    // CallbackNoMandatoryIndexSeqHelper(void):             ~ 1029 Mio/sec  |   ~ 137.1 Mio/sec
     start = std::chrono::high_resolution_clock::now();
     for (size_t i = 0; i < ITERATIONS; ++i) {
         cb1NoMandatoryIndexSeqHelper.execute();
@@ -266,7 +268,7 @@ int main() {
     end = std::chrono::high_resolution_clock::now();
     std::cout << "NoMandatoryIndexSeqHelper(void): " << (ITERATIONS * 1000000) / std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() << "/s" << std::endl;
 
-    // CallbackNoMandatoryIndexSeqHelper(size_t):           ~ 53.2 Mio/sec
+    // CallbackNoMandatoryIndexSeqHelper(size_t):           ~ 2920 Mio/sec  |   ~ 53.2 Mio/sec
     start = std::chrono::high_resolution_clock::now();
     for (size_t i = 0; i < ITERATIONS; ++i) {
         cb2NoMandatoryIndexSeqHelper.execute();
@@ -276,7 +278,7 @@ int main() {
 
 
 
-    // CallbackNoMandatoryIndexSeqLambda(void):             ~ 33.1 Mio/sec
+    // CallbackNoMandatoryIndexSeqLambda(void):             ~ 2656 Mio/sec  |   ~ 33.1 Mio/sec
     start = std::chrono::high_resolution_clock::now();
     for (size_t i = 0; i < ITERATIONS; ++i) {
         cb1NoMandatoryIndexSeqLambda.execute();
@@ -284,7 +286,7 @@ int main() {
     end = std::chrono::high_resolution_clock::now();
     std::cout << "NoMandatoryIndexSeqLambda(void): " << (ITERATIONS * 1000000) / std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() << "/s" << std::endl;
 
-    // CallbackNoMandatoryIndexSeqLambda(size_t):           ~ 22.8 Mio/sec
+    // CallbackNoMandatoryIndexSeqLambda(size_t):           ~ 1555 Mio/sec  |   ~ 22.8 Mio/sec
     start = std::chrono::high_resolution_clock::now();
     for (size_t i = 0; i < ITERATIONS; ++i) {
         cb2NoMandatoryIndexSeqLambda.execute();
@@ -299,7 +301,7 @@ int main() {
 
     // [ WITH MANDATORY ARGS ]
 
-    // CallbackWithMandatoryTupleCat(void):                 ~ 8.8 Mio/sec
+    // CallbackWithMandatoryTupleCat(void):                 ~ 1576 Mio/sec  |   ~ 8.8 Mio/sec
     start = std::chrono::high_resolution_clock::now();
     for (size_t i = 0; i < ITERATIONS; ++i) {
         cb1WithMandatoryTupleCat.execute(i);
@@ -307,7 +309,7 @@ int main() {
     end = std::chrono::high_resolution_clock::now();
     std::cout << "WithMandatoryTupleCat(void): " << (ITERATIONS * 1000000) / std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() << "/s" << std::endl;
 
-    // CallbackWithMandatoryTupleCat(size_t):               ~ 6.7 Mio/sec
+    // CallbackWithMandatoryTupleCat(size_t):               ~ 2763 Mio/sec  |   ~ 6.7 Mio/sec
     start = std::chrono::high_resolution_clock::now();
     for (size_t i = 0; i < ITERATIONS; ++i) {
         cb2WithMandatoryTupleCat.execute(i);
@@ -317,7 +319,7 @@ int main() {
 
 
 
-    // CallbackWithMandatoryIndexSeqHelper(void):           ~ 122.5 Mio/sec
+    // CallbackWithMandatoryIndexSeqHelper(void):           ~ 2801 Mio/sec  |   ~ 122.5 Mio/sec
     start = std::chrono::high_resolution_clock::now();
     for (size_t i = 0; i < ITERATIONS; ++i) {
         cb1WithMandatoryIndexSeqHelper.execute(i);
@@ -325,7 +327,7 @@ int main() {
     end = std::chrono::high_resolution_clock::now();
     std::cout << "WithMandatoryIndexSeqHelper(void): " << (ITERATIONS * 1000000) / std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() << "/s" << std::endl;
 
-    // CallbackWithMandatoryIndexSeqHelper(size_t):         ~ 49.8 Mio/sec
+    // CallbackWithMandatoryIndexSeqHelper(size_t):         ~ 2800 Mio/sec  |   ~ 49.8 Mio/sec
     start = std::chrono::high_resolution_clock::now();
     for (size_t i = 0; i < ITERATIONS; ++i) {
         cb2WithMandatoryIndexSeqHelper.execute(i);
@@ -335,7 +337,7 @@ int main() {
 
 
 
-    // CallbackWithMandatoryIndexSeqLambda(void):           ~ 31.5 Mio/sec
+    // CallbackWithMandatoryIndexSeqLambda(void):           ~ 1551 Mio/sec  |   ~ 31.5 Mio/sec
     start = std::chrono::high_resolution_clock::now();
     for (size_t i = 0; i < ITERATIONS; ++i) {
         cb1WithMandatoryIndexSeqLambda.execute(i);
@@ -343,7 +345,7 @@ int main() {
     end = std::chrono::high_resolution_clock::now();
     std::cout << "WithMandatoryIndexSeqLambda(void): " << (ITERATIONS * 1000000) / std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() << "/s" << std::endl;
 
-    // CallbackWithMandatoryIndexSeqLambda(size_t):         ~ 22.4 Mio/sec
+    // CallbackWithMandatoryIndexSeqLambda(size_t):         ~ 1544 Mio/sec  |   ~ 22.4 Mio/sec
     start = std::chrono::high_resolution_clock::now();
     for (size_t i = 0; i < ITERATIONS; ++i) {
         cb2WithMandatoryIndexSeqLambda.execute(i);
