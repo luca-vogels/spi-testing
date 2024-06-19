@@ -5,22 +5,37 @@
 #include <chrono>
 
 
-// [ REFERENCE ]
+// [ NO DYNAMIC ARGS - REFERENCE ]
 // no dynamic args
 template<typename Callback>
-struct CallbackAndNoArgs {
+struct CallbackAndNoDynArgs {
     Callback callback;
 
     // Constructor
-    CallbackAndNoArgs(Callback cb)
+    CallbackAndNoDynArgs(Callback cb)
         : callback(cb) {}
 
     // Execute the stored callback with its arguments, including the mandatory size_t
-    inline void execute(size_t mandatoryArg){
-        callback(mandatoryArg);
+    inline void execute(size_t mandatoryArg1, size_t mandatoryArg2){
+        callback(mandatoryArg1, mandatoryArg2);
     }
 };
 
+// std::tuple
+using StaticCallbackArgs = std::tuple<size_t, size_t>;
+using StaticCallback = void(*)(StaticCallbackArgs);
+struct StaticCallbackAndNoDynArgs {
+    StaticCallback callback;
+
+    // Constructor
+    StaticCallbackAndNoDynArgs(StaticCallback cb)
+        : callback(cb) {}
+
+    // Execute the stored callback with its arguments, including the mandatory size_t
+    inline void execute(StaticCallbackArgs args){
+        callback(args);
+    }
+};
 
 
 
@@ -153,6 +168,12 @@ struct CallbackWithMandatoryIndexSeqLambda {
 
 
 
+void exampleStaticFunctionAndNoArgs(std::tuple<size_t, size_t> args){
+    size_t a = std::get<0>(args);
+    size_t b = std::get<1>(args);
+    volatile size_t c = a + b;
+    (void)c;
+}
 
 
 // Example functions to be used as callbacks (only used by no mandatory to keep dynamic args count equal to with mandatory)
@@ -195,9 +216,12 @@ int main() {
 
 
 
-    // REFERENCE
-    CallbackAndNoArgs<void(*)(size_t)> cb1NoArgs(exampleFunction1);
-    // not possible: CallbackAndNoArgs<void(*)(size_t, size_t)> cb2NoArgs(exampleFunction2);
+    // NO DYNAMIC ARGS - REFERENCE
+    CallbackAndNoDynArgs<void(*)(size_t, size_t)> cb1NoArgs(exampleFunction2);
+    // not possible: CallbackAndNoDynArgs<void(*)(size_t, size_t)> cb2NoArgs(exampleFunction2);
+
+    StaticCallbackAndNoDynArgs cb1StaticNoArgs(exampleStaticFunctionAndNoArgs);
+
 
 
     // NO MANDATORY ARGS
@@ -225,15 +249,24 @@ int main() {
     //                                                      RELEASE         |   DEBUG
 
 
-    // [ REFERENCE ]
+    // [ NO DYNAMIC ARGS - REFERENCE ]
 
     // NoDynamicArgs(void):                                 ~ 1960 Mio/sec  |   ~ 171.3 Mio/sec
     auto start = std::chrono::high_resolution_clock::now();
     for (size_t i = 0; i < ITERATIONS; ++i) {
-        cb1NoArgs.execute(i);
+        cb1NoArgs.execute(i, i);
     }
     auto end = std::chrono::high_resolution_clock::now();
     std::cout << "NoDynamicArgs(void): " << (ITERATIONS * 1000000) / std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() << "/s" << std::endl;
+
+
+    // StaticCallbackAndNoDynArgs(size_t):                 ~ 1973 Mio/sec  |   ~ 16.5 Mio/sec
+    start = std::chrono::high_resolution_clock::now();
+    for (size_t i = 0; i < ITERATIONS; ++i) {
+        cb1StaticNoArgs.execute(std::make_tuple(i, i));
+    }
+    end = std::chrono::high_resolution_clock::now();
+    std::cout << "StaticCallbackAndNoDynArgs(size_t): " << (ITERATIONS * 1000000) / std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() << "/s" << std::endl;
     std::cout << std::endl;
 
 
