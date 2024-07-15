@@ -65,11 +65,16 @@ public:
  */
 class ReadOrWriteAccess {
 private:
-    bool read = false;  // if reader is interested
-    bool write = false; // if writer is interested
-    bool turn = false;  // whose turn it is (false = reader, true = writer)
+    bool reduceCpuUsage;
+
+    volatile bool read = false;  // if reader is interested
+    volatile bool write = false; // if writer is interested
+    volatile bool writersTurn = false;  // whose turn it is (false = reader, true = writer)
 
 public:
+
+    ReadOrWriteAccess(bool reduceCpuUsage) : reduceCpuUsage(reduceCpuUsage) {}
+
     
     /**
      * Reader will pause until the writer is done 
@@ -77,9 +82,11 @@ public:
      */
     void accessRead(){
         read = true;
-        turn = true; // give writer the turn
-        while(write && turn){
-            std::this_thread::yield();
+        writersTurn = true;
+        while(write && writersTurn) {
+            if(reduceCpuUsage) {
+                std::this_thread::yield();
+            }
         }
     }
 
@@ -89,9 +96,11 @@ public:
      */
     void accessWrite(){
         write = true;
-        turn = false; // give reader the turn
-        while(read && !turn){
-            std::this_thread::yield();
+        writersTurn = false;
+        while(read && !writersTurn) {
+            if(reduceCpuUsage) {
+                std::this_thread::yield();
+            }
         }
     }
     

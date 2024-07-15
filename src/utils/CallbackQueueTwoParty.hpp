@@ -38,6 +38,10 @@ protected:
 
 public:
 
+    CallbackQueueTwoParty(bool reduceCpuUsage) : access(reduceCpuUsage) {
+        
+    }
+
     ~CallbackQueueTwoParty(){
         cancelAll();
     }

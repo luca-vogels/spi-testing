@@ -7,21 +7,30 @@
 using namespace spi;
 
 
-ReadOrWriteAccess cond;
-const size_t ITERATIONS = 2500;
-int accessCount = 0;
+ReadOrWriteAccess cond(false);
+const size_t ITERATIONS = 250000000;
+volatile int readAccessCounter = 0;
+volatile int writeAccessCounter = 0;
 
 
 void runRead(){
     for(size_t i=0; i < ITERATIONS; i++){
         cond.accessRead();
-        accessCount++;
-        if(accessCount != 1) throw std::runtime_error("Multiple readers at the same time: "+std::to_string(accessCount));
 
-        Thread::sleepUs(100);
+        readAccessCounter = readAccessCounter + 1;
+        const int currRead = readAccessCounter;
+        const int currWrite = writeAccessCounter;
+        if(currRead != 1 || currWrite != 0)
+            throw std::runtime_error("Multiple readers at the same time A: reads="+std::to_string(currRead)+" writes="+std::to_string(currWrite)+" i="+std::to_string(i));
 
-        accessCount--;
-        if(accessCount != 0) throw std::runtime_error("Multiple readers at the same time: "+std::to_string(accessCount));
+        //Thread::sleepUs(100);
+
+        readAccessCounter = readAccessCounter - 1;
+        const int currRead2 = readAccessCounter;
+        const int currWrite2 = writeAccessCounter;
+        if(currRead2 != 0 || currWrite2 != 0)
+            throw std::runtime_error("Multiple readers at the same time B: reads="+std::to_string(currRead2)+" writes="+std::to_string(currWrite2)+" i="+std::to_string(i));
+        
         cond.releaseRead();
     }
 }
@@ -29,13 +38,21 @@ void runRead(){
 void runWrite(){
     for(size_t i=0; i < ITERATIONS; i++){
         cond.accessWrite();
-        accessCount++;
-        if(accessCount != 1) throw std::runtime_error("Multiple writers at the same time: "+std::to_string(accessCount));
 
-        Thread::sleepUs(100);
+        writeAccessCounter = writeAccessCounter + 1;
+        const int currRead = readAccessCounter;
+        const int currWrite = writeAccessCounter;
+        if(currWrite != 1 || currRead != 0)
+            throw std::runtime_error("Multiple writes at the same time A: writes="+std::to_string(currWrite)+" reads="+std::to_string(currRead)+" i="+std::to_string(i));
 
-        accessCount--;
-        if(accessCount != 0) throw std::runtime_error("Multiple writers at the same time: "+std::to_string(accessCount));
+        //Thread::sleepUs(100);
+
+        writeAccessCounter = writeAccessCounter - 1;
+        const int currRead2 = readAccessCounter;
+        const int currWrite2 = writeAccessCounter;
+        if(currWrite2 != 0 || currRead2 != 0)
+            throw std::runtime_error("Multiple writes at the same time B: writes="+std::to_string(currWrite2)+" reads="+std::to_string(currRead2)+" i="+std::to_string(i));
+        
         cond.releaseWrite();
     }
 }

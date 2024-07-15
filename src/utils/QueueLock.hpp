@@ -8,6 +8,7 @@
 #ifndef SPI_QUEUE_LOCK_HPP
 #define SPI_QUEUE_LOCK_HPP
 
+#include <queue>
 #include <mutex>
 
 namespace spi {
@@ -15,6 +16,37 @@ namespace spi {
 
 template<typename T>
 class QueueLock {
+protected:
+
+    std::mutex mutex;
+    std::queue<T> queue;
+
+public:
+
+    void push(T data) {
+        std::lock_guard<std::mutex> lock(mutex);
+        queue.push(data);
+    }
+
+    bool pop(T& data) {
+        std::lock_guard<std::mutex> lock(mutex);
+        if(queue.empty()) return false;
+        data = queue.front();
+        queue.pop();
+        return true;
+    }
+
+    bool empty() {
+        std::lock_guard<std::mutex> lock(mutex);
+        return queue.empty();
+    }
+
+};
+
+
+
+template<typename T>
+class QueueLockCustom {
 protected:
 
     struct Node {
@@ -30,7 +62,7 @@ protected:
 
 public:
 
-    QueueLock() : head(nullptr), tail(nullptr) {}
+    QueueLockCustom() : head(nullptr), tail(nullptr) {}
 
     void push(T data) {
         Node* newNode = new Node(data, nullptr);
@@ -59,7 +91,7 @@ public:
         return head == nullptr;
     }
 
-    ~QueueLock() {
+    ~QueueLockCustom() {
         Node* h = head;
         while(h != nullptr) {
             Node* n = h->next;

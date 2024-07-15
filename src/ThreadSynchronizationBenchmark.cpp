@@ -7,7 +7,7 @@ using namespace spi;
 int main(){
     const uint64_t ITERATIONS = 100000000;
     BusyConditionWait cond;
-    ReadOrWriteAccess rwCond;
+    ReadOrWriteAccess rwCond(false);
 
 
     // ConditionWait::check():                  ~70.2 Mio/s

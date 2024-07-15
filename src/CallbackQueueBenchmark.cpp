@@ -15,7 +15,7 @@ int main(){
     CallbackQueueNaive queueNaive;
     CallbackQueueRecycle queueRecycle;
     CallbackQueueLock queueLock;
-    CallbackQueueTwoParty<bool(*)()> queueTwoParty;
+    CallbackQueueTwoParty<bool(*)()> queueTwoParty(false);
 
 
 

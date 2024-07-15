@@ -12,7 +12,9 @@ set(TESTING_SRC
   QueueLock.hpp
   QueueMoodyCamel.hpp
   QueueRing.hpp
-  QueueTwoParty.hpp
+  QueueTwoPartyAtomic.hpp
+  QueueTwoPartyHighContention.hpp
+  QueueTwoPartyNoCritical.hpp
   RecycleObjectStoreBitmap.hpp
   RecycleObjectStoreQueue.hpp
   RecycleObjectStoreVector.hpp
