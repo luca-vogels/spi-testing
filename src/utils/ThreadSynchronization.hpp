@@ -8,10 +8,33 @@
 #ifndef SPI_THREAD_SYNCHRONIZATION_HPP
 #define SPI_THREAD_SYNCHRONIZATION_HPP
 
+#include <atomic>
 #include <functional>
 #include <thread>
 
 namespace spi {
+
+
+
+class SpinLockAtomic {
+private:
+
+    std::atomic<bool> aquired{false};
+
+public:
+
+    void lock() {
+        while(aquired.exchange(true, std::memory_order_acquire)){ // waits until previous value was false
+            // busy wait
+        }
+    }
+
+    void unlock() {
+        aquired.store(false, std::memory_order_release);
+    }
+
+};
+
 
 
 /**

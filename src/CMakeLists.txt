@@ -18,6 +18,9 @@ target_link_libraries(callback_example testing_lib)
 add_executable(callback_queue_benchmark CallbackQueueBenchmark.cpp)
 target_link_libraries(callback_queue_benchmark testing_lib)
 
+add_executable(copy_benchmark CopyBenchmark.cpp)
+target_link_libraries(copy_benchmark testing_lib)
+
 add_executable(dynamic_args_benchmark DynamicArgsBenchmark.cpp)
 target_link_libraries(dynamic_args_benchmark testing_lib)
 
