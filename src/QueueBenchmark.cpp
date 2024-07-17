@@ -102,7 +102,7 @@ int main(){
     */
     
 
-    // Sequential QueueTwoPartyNoCritical push & pop:       ~ 300.7 Mio/sec  |   ~ 30.3 Mio/sec
+    // Sequential QueueTwoPartyNoCritical push & pop:       ~ 287.9 Mio/sec  |   ~ 84.7 Mio/sec
     startTime = std::chrono::high_resolution_clock::now();
     for(uint64_t i=0; i < ITERATIONS; i++){
         queueTwoPartyNoCritical.push(i);
@@ -267,7 +267,7 @@ int main(){
     }*/
 
 
-    // Parallel QueueTwoPartyNoCritical push & pop:         ~ 125.8 Mio/sec  |   ~ 6.2 Mio/sec  
+    // Parallel QueueTwoPartyNoCritical push & pop:         ~ 17.3 Mio/sec  |   ~ 37.2 Mio/sec  
     if(THREADS == 2){
         threads.push_back(new Thread([&ITERATIONS, &queueTwoPartyNoCritical](){
             uint64_t i=0;

@@ -80,6 +80,7 @@ public:
         if(recycleHead->next != nullptr){
             newNode = recycleHead;
             recycleHead = recycleHead->next;
+            newNode->next = nullptr;
         } else {
             newNode = new Node();
         }
@@ -103,6 +104,25 @@ public:
         recycleTail = oldHead;
         oldRecycleTail->next = oldHead;
 
+        return true;
+    }
+
+    bool popAndCheckNext(T& data, bool &hasMore) {
+        if(head->next == nullptr){
+            hasMore = false;
+            std::this_thread::yield(); // always yield because of better performance
+            return false;
+        }
+        Node* oldHead = head;
+        head = head->next;
+        data = oldHead->data;
+        
+        oldHead->next = nullptr;
+        Node* oldRecycleTail = recycleTail;
+        recycleTail = oldHead;
+        oldRecycleTail->next = oldHead;
+
+        hasMore = head->next != nullptr;
         return true;
     }
 
