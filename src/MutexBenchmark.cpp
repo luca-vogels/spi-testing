@@ -16,7 +16,7 @@ const uint64_t ITERATIONS = 50000000;
 const uint64_t THREADS = 8;
 std::mutex mutex;
 std::shared_mutex sharedMutex;
-SpinLock spinLock;
+Lock spinLock(true);
 std::condition_variable conditionVariable;
 std::vector<Thread*> threads;
 
@@ -71,7 +71,7 @@ int main(){
     std::cout << "single shared_mutex::shared_lock(): " << (ITERATIONS * 1000000) / std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count() << "/s" << std::endl;
 
 
-    // single SpinLock:                         ~ 110 Mio/s     |   ~ 43 Mio/s
+    // single Lock:                         ~ 114 Mio/s     |   ~ 43 Mio/s
     startTime = std::chrono::high_resolution_clock::now();
     for(uint64_t i=0; i < ITERATIONS; i++){
         spinLock.lock();
@@ -79,7 +79,7 @@ int main(){
         spinLock.unlock();
     }
     endTime = std::chrono::high_resolution_clock::now();
-    std::cout << "single SpinLock: " << (ITERATIONS * 1000000) / std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count() << "/s" << std::endl;
+    std::cout << "single Lock: " << (ITERATIONS * 1000000) / std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count() << "/s" << std::endl;
     std::cout << std::endl;
 
 
@@ -168,7 +168,7 @@ int main(){
     std::cout << "multi shared_mutex::shared_lock(): " << (ITERATIONS * 1000000) / std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count() << "/s" << std::endl;
 
 
-    // multi SpinLock:                          ~ 42.5 Mio/s    |   ~ 13.7 Mio/s
+    // multi Lock:                          ~ 42.5 Mio/s    |   ~ 13.7 Mio/s
     for(uint64_t i=0; i < THREADS; i++)
         threads.push_back(new Thread([](){
             for(uint64_t i=0; i < MULTITHREADED_ITERATIONS; i++){
@@ -186,7 +186,7 @@ int main(){
     for(uint64_t i=0; i < THREADS; i++)
         delete threads[i];
     threads.clear();
-    std::cout << "multi SpinLock: " << (ITERATIONS * 1000000) / std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count() << "/s" << std::endl;
+    std::cout << "multi Lock: " << (ITERATIONS * 1000000) / std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count() << "/s" << std::endl;
     std::cout << std::endl;
 
 

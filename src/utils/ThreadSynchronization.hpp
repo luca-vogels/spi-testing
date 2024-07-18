@@ -10,21 +10,50 @@
 
 #include <atomic>
 #include <functional>
+#include <mutex>
 #include <thread>
 
 namespace spi {
 
 
-
-class SpinLock {
+/**
+ * An exclusive access lock providing a lock and unlock method that can be accessed by multiple threads simultaneously.
+ * Achieves comparable and better performance than traditional mutexes especially in high contention scenarios, 
+ * however it is computational more expensive (if reduceCpuUsage is false).
+ * Is not automatically locked on creation and also does not unlock on destruction.
+ * 
+ */
+class Lock {
 private:
 
+    bool reduceCpuUsage;
+
+    // for high performance
     std::atomic<bool> aquired{false};
+
+    // for reduce cpu usage
+    std::mutex mtx;
 
 public:
 
+    Lock(bool reduceCpuUsage) : reduceCpuUsage(reduceCpuUsage) {}
+
+    /**
+     * Changes the mode of the Lock to reduce cpu usage.
+     * IMPORTANT: calling thread is not allowed to hold this lock!
+     */
+    void setReduceCpuUsage(bool reduceCpuUsage){
+        if(reduceCpuUsage == this->reduceCpuUsage) return;
+        lock();
+        this->reduceCpuUsage = reduceCpuUsage;
+        unlock();
+    }
 
     void lock() noexcept {
+        if(reduceCpuUsage){
+            mtx.lock();
+            return;
+        }
         while(true){
 
             if(!aquired.exchange(true, std::memory_order_acquire)){
@@ -38,6 +67,10 @@ public:
     }
 
     void unlock() noexcept {
+        if(reduceCpuUsage){
+            mtx.unlock();
+            return;
+        }
         aquired.store(false, std::memory_order_release);
     }
 

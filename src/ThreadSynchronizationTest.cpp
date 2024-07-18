@@ -7,11 +7,11 @@
 using namespace spi;
 
 
-// SpinLock
+// Lock
 const bool SPIN_LOCK_TEST = true;
-const size_t SPIN_LOCK_ITERATIONS = 2500000;
+const size_t SPIN_LOCK_ITERATIONS = 5000000;
 const size_t SPIN_LOCK_THREADS = 8;
-SpinLock spinLock;
+Lock spinLock(true);
 bool spinLockAccessTracker[SPIN_LOCK_THREADS];
 
 void runSpinLock(size_t myId){
@@ -87,9 +87,9 @@ void runReadOrWriteAccessWRITE(){
 int main(){
 
 
-    // SpinLock
+    // Lock
     if(SPIN_LOCK_TEST){
-        std::cout << "SpinLock test" << std::endl;  
+        std::cout << "Lock test" << std::endl;  
         Thread* threads[SPIN_LOCK_THREADS];
         for(size_t i=0; i < SPIN_LOCK_THREADS; i++){
             const size_t myId = i;
@@ -102,7 +102,7 @@ int main(){
             threads[i]->join();
             delete threads[i];
         }
-        std::cout << "SpinLock test passed" << std::endl;
+        std::cout << "Lock test passed" << std::endl;
     }
 
 
