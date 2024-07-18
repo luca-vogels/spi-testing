@@ -16,20 +16,28 @@ namespace spi {
 
 
 
-class SpinLockAtomic {
+class SpinLock {
 private:
 
     std::atomic<bool> aquired{false};
 
 public:
 
-    void lock() {
-        while(aquired.exchange(true, std::memory_order_acquire)){ // waits until previous value was false
-            // busy wait
+
+    void lock() noexcept {
+        while(true){
+
+            if(!aquired.exchange(true, std::memory_order_acquire)){
+                return; // successfully aquired lock
+            }
+
+            while(aquired.load(std::memory_order_relaxed)){ // optimization because load is way faster and uses cache
+                std::this_thread::yield(); // way better performance when always including this!
+            }
         }
     }
 
-    void unlock() {
+    void unlock() noexcept {
         aquired.store(false, std::memory_order_release);
     }
 
@@ -43,7 +51,7 @@ public:
  */
 class BusyConditionWait {
 private:
-    bool proceed = true;
+    volatile bool proceed = true;
 
 public:
 
@@ -52,7 +60,7 @@ public:
      * Otherwise immediately returns with minimal overhead.
      * @param needToPause 
      */
-    void check(std::function<void()> needToPause = nullptr) {
+    void check(std::function<void()> needToPause = nullptr) noexcept {
         while(!proceed) {
             if(needToPause != nullptr){
                 needToPause();
@@ -65,14 +73,14 @@ public:
     /**
      * Will pause threads hitting the check() method until setProceed() is called.
      */
-    void setWait() {
+    void setWait() noexcept {
         proceed = false;
     }
 
     /**
      * Will allow threads hitting or waiting at the check() method to proceed.
      */
-    void setProceed() {
+    void setProceed() noexcept {
         proceed = true;
     }
 };
@@ -103,7 +111,7 @@ public:
      * Reader will pause until the writer is done 
      * and will then acquire exlucsive access.
      */
-    void accessRead(){
+    void accessRead() noexcept {
         read = true;
         writersTurn = true;
         while(write && writersTurn) {
@@ -117,7 +125,7 @@ public:
      * Writer will pause until the reader is done
      * and will then acquire exlucsive access.
      */
-    void accessWrite(){
+    void accessWrite() noexcept {
         write = true;
         writersTurn = false;
         while(read && !writersTurn) {
@@ -130,14 +138,14 @@ public:
     /**
      * Invoked by the reader to release the resource.
      */
-    void releaseRead(){
+    void releaseRead() noexcept {
         read = false;
     }
 
     /**
      * Invoked by the writer to release the resource.
      */
-    void releaseWrite(){
+    void releaseWrite() noexcept {
         write = false;
     }
 };

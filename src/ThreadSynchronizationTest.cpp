@@ -7,15 +7,41 @@
 using namespace spi;
 
 
-ReadOrWriteAccess cond(false);
-const size_t ITERATIONS = 250000000;
+// SpinLock
+const bool SPIN_LOCK_TEST = true;
+const size_t SPIN_LOCK_ITERATIONS = 2500000;
+const size_t SPIN_LOCK_THREADS = 8;
+SpinLock spinLock;
+bool spinLockAccessTracker[SPIN_LOCK_THREADS];
+
+void runSpinLock(size_t myId){
+    const size_t iterations = SPIN_LOCK_ITERATIONS / SPIN_LOCK_THREADS;
+    for(size_t i=0; i < iterations; i++){
+        spinLock.lock();
+        spinLockAccessTracker[myId] = true;
+        for(size_t j=0; j < SPIN_LOCK_THREADS; j++){
+            if(j != myId && spinLockAccessTracker[j])
+                throw std::runtime_error("Multiple threads accessing the same spinlock at the same time myId="+std::to_string(myId)+" otherId="+std::to_string(j)+
+                                            " at iteration="+std::to_string(i));
+        }
+        spinLockAccessTracker[myId] = false;
+        spinLock.unlock();
+    }
+}
+
+
+
+
+// ReadOrWriteAccess
+const bool READ_OR_WRITE_ACCESS_TEST = false;
+const size_t READ_OR_WRITE_ACCESS_ITERATIONS = 250000000;
+ReadOrWriteAccess readOrWriteAccess(false);
 volatile int readAccessCounter = 0;
 volatile int writeAccessCounter = 0;
 
-
-void runRead(){
-    for(size_t i=0; i < ITERATIONS; i++){
-        cond.accessRead();
+void runReadOrWriteAccessREAD(){
+    for(size_t i=0; i < READ_OR_WRITE_ACCESS_ITERATIONS; i++){
+        readOrWriteAccess.accessRead();
 
         readAccessCounter = readAccessCounter + 1;
         const int currRead = readAccessCounter;
@@ -31,13 +57,13 @@ void runRead(){
         if(currRead2 != 0 || currWrite2 != 0)
             throw std::runtime_error("Multiple readers at the same time B: reads="+std::to_string(currRead2)+" writes="+std::to_string(currWrite2)+" i="+std::to_string(i));
         
-        cond.releaseRead();
+        readOrWriteAccess.releaseRead();
     }
 }
 
-void runWrite(){
-    for(size_t i=0; i < ITERATIONS; i++){
-        cond.accessWrite();
+void runReadOrWriteAccessWRITE(){
+    for(size_t i=0; i < READ_OR_WRITE_ACCESS_ITERATIONS; i++){
+        readOrWriteAccess.accessWrite();
 
         writeAccessCounter = writeAccessCounter + 1;
         const int currRead = readAccessCounter;
@@ -53,17 +79,43 @@ void runWrite(){
         if(currWrite2 != 0 || currRead2 != 0)
             throw std::runtime_error("Multiple writes at the same time B: writes="+std::to_string(currWrite2)+" reads="+std::to_string(currRead2)+" i="+std::to_string(i));
         
-        cond.releaseWrite();
+        readOrWriteAccess.releaseWrite();
     }
 }
 
 
 int main(){
-    Thread reader(runRead);
-    reader.start();
 
-    runWrite();
 
-    reader.join();
+    // SpinLock
+    if(SPIN_LOCK_TEST){
+        std::cout << "SpinLock test" << std::endl;  
+        Thread* threads[SPIN_LOCK_THREADS];
+        for(size_t i=0; i < SPIN_LOCK_THREADS; i++){
+            const size_t myId = i;
+            spinLockAccessTracker[i] = false;
+            threads[i] = new Thread(runSpinLock, myId);
+        }
+        for(size_t i=0; i < SPIN_LOCK_THREADS; i++)
+            threads[i]->start();
+        for(size_t i=0; i < SPIN_LOCK_THREADS; i++){
+            threads[i]->join();
+            delete threads[i];
+        }
+        std::cout << "SpinLock test passed" << std::endl;
+    }
+
+
+    // ReadOrWriteAccess
+    if(READ_OR_WRITE_ACCESS_TEST){
+        std::cout << "ReadOrWriteAccess test" << std::endl;
+        Thread reader(runReadOrWriteAccessREAD);
+        reader.start();
+        runReadOrWriteAccessWRITE();
+        reader.join();
+        std::cout << "ReadOrWriteAccess test passed" << std::endl;
+    }
+
+
     return 0;
 }
