@@ -167,6 +167,44 @@ public:
         bool reduceCpuUsage, bool multithreaded, bool simultaneousReads
     ) : reduceCpuUsage(reduceCpuUsage), multithreaded(multithreaded), simultaneousReads(simultaneousReads) {}
 
+
+    /**
+     * Sets the CPU usage mode.
+     * IMPORTANT: calling thread is not allowed to hold this lock (acts as writer thread)!
+     */
+    void setReduceCpuUsage(bool reduceCpuUsage){
+        if(reduceCpuUsage == this->reduceCpuUsage) return;
+        accessWrite();
+        this->reduceCpuUsage = reduceCpuUsage;
+        releaseWrite();
+    }
+
+    /**
+     * Sets the multithreaded mode.
+     * IMPORTANT: calling thread is not allowed to hold this lock (acts as writer thread)!
+     */
+    void setMultithreaded(bool multithreaded){
+        if(multithreaded == this->multithreaded) return;
+        accessWrite(); // lock using old lock method first
+
+        // now first aquire new lock method as well
+        if(multithreaded){
+            mtx.lock();
+        } else {
+            write = true;
+        }
+        this->multithreaded = multithreaded;
+
+        // unlock old lock method first
+        if(multithreaded){
+            // previously not multi threaded
+            write = false;
+        } else {
+            mtx.unlock();
+        }
+        releaseWrite(); // unlock new method
+    }
+
     
     /**
      * Reader will pause until the writer is done 

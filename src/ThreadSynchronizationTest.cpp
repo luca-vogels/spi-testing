@@ -35,7 +35,7 @@ void runSpinLock(size_t myId){
 // ReadOrWriteAccess
 const bool READ_OR_WRITE_ACCESS_TEST = true;
 const size_t READ_OR_WRITE_ACCESS_ITERATIONS = 100000;
-ReadOrWriteAccess readOrWriteAccess(false, false);
+ReadOrWriteAccess readOrWriteAccess(false, false, true);
 volatile int readAccessCounter = 0;
 volatile int writeAccessCounter = 0;
 

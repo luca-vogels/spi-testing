@@ -8,12 +8,16 @@
 using namespace spi;
 
 
-const uint64_t ITERATIONS = 50000000; // before 500000000
+const uint64_t ITERATIONS = 500000000; // before 500000000
 std::mutex mutex;
 Lock spinLock(false);
 BusyConditionWait busyConditionWait;
-ReadOrWriteAccess rwCond(false, false);
+ReadOrWriteAccess rwCond(false, false, true);
 std::vector<Thread*> threads;
+
+
+
+// IMPORTANT: ReadOrWriteAccess with multithreaded=true seems very slow under high contention!
 
 
 const uint64_t THREAD_ITERATIONS = ITERATIONS / 2;
