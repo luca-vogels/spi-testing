@@ -146,6 +146,7 @@ class ReadOrWriteAccess {
 private:
     bool reduceCpuUsage;
     bool multithreaded; // more than one thread per group
+    bool simultaneousReads; // if multiple readers can access the resource simultaneously
 
     volatile bool read = false;  // if reader is interested
     volatile bool write = false; // if writer is interested
@@ -160,8 +161,11 @@ public:
      * 
      * @param reduceCpuUsage If true the object will use less cpu resources but will be slower.
      * @param multithreaded Set to true if there are multiple readers or multiple writer threads (if only one per group set to false).
+     * @param simultaneousReads If true multiple readers can access the resource simultaneously (only relevant if multithreaded=true).
      */
-    ReadOrWriteAccess(bool reduceCpuUsage, bool multithreaded) : reduceCpuUsage(reduceCpuUsage), multithreaded(multithreaded) {}
+    ReadOrWriteAccess(
+        bool reduceCpuUsage, bool multithreaded, bool simultaneousReads
+    ) : reduceCpuUsage(reduceCpuUsage), multithreaded(multithreaded), simultaneousReads(simultaneousReads) {}
 
     
     /**
@@ -170,7 +174,11 @@ public:
      */
     void accessRead() noexcept {
         if(multithreaded){
-            mtx.lock_shared();
+            if(simultaneousReads){
+                mtx.lock_shared();
+            } else {
+                mtx.lock();
+            }
         } else {
             read = true;
             writersTurn = true;
@@ -205,7 +213,11 @@ public:
      */
     void releaseRead() noexcept {
         if(multithreaded){
-            mtx.unlock_shared();
+            if(simultaneousReads){
+                mtx.unlock_shared();
+            } else {
+                mtx.unlock();
+            }
         } else {
             read = false;
         }
