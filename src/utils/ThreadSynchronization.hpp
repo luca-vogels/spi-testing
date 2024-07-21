@@ -11,6 +11,7 @@
 #include <atomic>
 #include <functional>
 #include <mutex>
+#include <shared_mutex>
 #include <thread>
 
 namespace spi {
@@ -80,7 +81,7 @@ public:
 
 /**
  * Simple condition wait that can be used to pause a thread until a condition is met.
- * Optimized for minimal overhead if condition is met most of the time.
+ * Optimized for minimal overhead if condition is met (no waiting needed).
  */
 class BusyConditionWait {
 private:
@@ -116,28 +117,51 @@ public:
     void setProceed() noexcept {
         proceed = true;
     }
+
+    /**
+     * Will allow threads hitting or waiting at the check() method to proceed.
+     * @param proceed If true threads will proceed, otherwise they will wait.
+     */
+    void setProceed(bool proceed) noexcept {
+        this->proceed = proceed;
+    }
 };
 
 
 
 /**
- * Synchronizes two threads (one for reading, one for writing) that want to 
+ * Synchronizes two groups of threads (one for reading, one for writing) that want to 
  * access a shared resource.
- * Optimized for minimal overhead if one of the threads is interested most of the time.
+ * In the reading group all threads can access the resource simultaneously however 
+ * only one thread of the writing group can access the resource at a time.
  * 
- * Uses Peterson's Algorithm.
+ * Highly optimized if only one reading and only one writing thread and only one of both
+ * threads is active most of the time (almost no overhead).
+ * 
+ * IMPORTANT: if not multithreaded=true then bad performance under high contention between reader and writer!
+ * 
+ * Uses Peterson's Algorithm (if multithreaded=false)
  */
 class ReadOrWriteAccess {
 private:
     bool reduceCpuUsage;
+    bool multithreaded; // more than one thread per group
 
     volatile bool read = false;  // if reader is interested
     volatile bool write = false; // if writer is interested
     volatile bool writersTurn = false;  // whose turn it is (false = reader, true = writer)
 
+    std::shared_mutex mtx; // only used if multithreaded=true
+
 public:
 
-    ReadOrWriteAccess(bool reduceCpuUsage) : reduceCpuUsage(reduceCpuUsage) {}
+    /**
+     * Create a new ReadOrWriteAccess object.
+     * 
+     * @param reduceCpuUsage If true the object will use less cpu resources but will be slower.
+     * @param multithreaded Set to true if there are multiple readers or multiple writer threads (if only one per group set to false).
+     */
+    ReadOrWriteAccess(bool reduceCpuUsage, bool multithreaded) : reduceCpuUsage(reduceCpuUsage), multithreaded(multithreaded) {}
 
     
     /**
@@ -145,11 +169,15 @@ public:
      * and will then acquire exlucsive access.
      */
     void accessRead() noexcept {
-        read = true;
-        writersTurn = true;
-        while(write && writersTurn) {
-            if(reduceCpuUsage) {
-                std::this_thread::yield();
+        if(multithreaded){
+            mtx.lock_shared();
+        } else {
+            read = true;
+            writersTurn = true;
+            while(write && writersTurn) {
+                if(reduceCpuUsage) {
+                    std::this_thread::yield();
+                }
             }
         }
     }
@@ -159,11 +187,15 @@ public:
      * and will then acquire exlucsive access.
      */
     void accessWrite() noexcept {
-        write = true;
-        writersTurn = false;
-        while(read && !writersTurn) {
-            if(reduceCpuUsage) {
-                std::this_thread::yield();
+        if(multithreaded){
+            mtx.lock();
+        } else {
+            write = true;
+            writersTurn = false;
+            while(read && !writersTurn) {
+                if(reduceCpuUsage) {
+                    std::this_thread::yield();
+                }
             }
         }
     }
@@ -172,14 +204,22 @@ public:
      * Invoked by the reader to release the resource.
      */
     void releaseRead() noexcept {
-        read = false;
+        if(multithreaded){
+            mtx.unlock_shared();
+        } else {
+            read = false;
+        }
     }
 
     /**
      * Invoked by the writer to release the resource.
      */
     void releaseWrite() noexcept {
-        write = false;
+        if(multithreaded){
+            mtx.unlock();
+        } else {
+            write = false;
+        }
     }
 };
 

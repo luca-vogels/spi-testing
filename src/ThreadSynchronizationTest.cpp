@@ -8,7 +8,7 @@ using namespace spi;
 
 
 // Lock
-const bool SPIN_LOCK_TEST = true;
+const bool SPIN_LOCK_TEST = false;
 const size_t SPIN_LOCK_ITERATIONS = 5000000;
 const size_t SPIN_LOCK_THREADS = 8;
 Lock spinLock(true);
@@ -33,9 +33,9 @@ void runSpinLock(size_t myId){
 
 
 // ReadOrWriteAccess
-const bool READ_OR_WRITE_ACCESS_TEST = false;
-const size_t READ_OR_WRITE_ACCESS_ITERATIONS = 250000000;
-ReadOrWriteAccess readOrWriteAccess(false);
+const bool READ_OR_WRITE_ACCESS_TEST = true;
+const size_t READ_OR_WRITE_ACCESS_ITERATIONS = 100000;
+ReadOrWriteAccess readOrWriteAccess(false, false);
 volatile int readAccessCounter = 0;
 volatile int writeAccessCounter = 0;
 
@@ -49,7 +49,7 @@ void runReadOrWriteAccessREAD(){
         if(currRead != 1 || currWrite != 0)
             throw std::runtime_error("Multiple readers at the same time A: reads="+std::to_string(currRead)+" writes="+std::to_string(currWrite)+" i="+std::to_string(i));
 
-        //Thread::sleepUs(100);
+        Thread::sleepUs(1); // needed so compiler does not rearrange code
 
         readAccessCounter = readAccessCounter - 1;
         const int currRead2 = readAccessCounter;
@@ -71,7 +71,7 @@ void runReadOrWriteAccessWRITE(){
         if(currWrite != 1 || currRead != 0)
             throw std::runtime_error("Multiple writes at the same time A: writes="+std::to_string(currWrite)+" reads="+std::to_string(currRead)+" i="+std::to_string(i));
 
-        //Thread::sleepUs(100);
+        Thread::sleepUs(1); // needed so compiler does not rearrange code
 
         writeAccessCounter = writeAccessCounter - 1;
         const int currRead2 = readAccessCounter;
