@@ -67,7 +67,7 @@ public:
         }
     }
 
-    void cancelAll(){
+    void cancelAll() noexcept {
         while(head->next != nullptr){
             Node* oldHead = head;
             head = oldHead->next;
@@ -75,7 +75,7 @@ public:
         }
     }
 
-    void push(T data) {
+    void push(T data) noexcept {
         Node* newNode;
         if(recycleHead->next != nullptr){
             newNode = recycleHead;
@@ -90,7 +90,7 @@ public:
         oldTail->next = newNode;
     }
 
-    bool pop(T& data) {
+    bool pop(T& data) noexcept {
         if(head->next == nullptr){
             std::this_thread::yield(); // always yield because of better performance
             return false;
@@ -107,7 +107,7 @@ public:
         return true;
     }
 
-    bool popAndCheckNext(T& data, bool &hasMore) {
+    bool popAndCheckNext(T& data, bool &hasMore) noexcept {
         if(head->next == nullptr){
             hasMore = false;
             std::this_thread::yield(); // always yield because of better performance
@@ -126,7 +126,7 @@ public:
         return true;
     }
 
-    bool empty() {
+    bool empty() noexcept {
         return head->next == nullptr;
     }
 

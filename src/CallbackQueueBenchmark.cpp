@@ -1,6 +1,6 @@
-#include "./utils/CallbackQueueLock.hpp"
 #include "./utils/CallbackQueueNaive.hpp"
 #include "./utils/CallbackQueueRecycle.hpp"
+#include "./utils/CallbackQueueThreadSafe.hpp"
 #include "./utils/CallbackQueueTwoParty.hpp"
 
 #include <chrono>
@@ -10,22 +10,28 @@
 
 using namespace spi;
 
+volatile bool b = true;
+
+bool callbackFunction(){
+    return b;
+}
+
+
 int main(){
     const uint64_t ITERATIONS = 50000000; // previous 50000000
     CallbackQueueNaive queueNaive;
     CallbackQueueRecycle queueRecycle;
-    CallbackQueueLock queueLock;
-    CallbackQueueTwoParty<bool(*)()> queueTwoParty;
+    CallbackQueueThreadSafe<bool(*)()> queueThreadSafe;
+    CallbackQueueTwoParty<bool(*)()> queueTwoParty(callbackFunction);
 
 
     //                                      RELEASE             |   DEBUG
 
 
-    // plain callback:                      ~ 447.6 Mio/sec     |   ~ 34.6 Mio/sec
-    std::function<bool()> plainCallback = [](){return true;};
+    // plain callback:                      ~ 2177.8 Mio/sec    |   ~ 35.6 Mio/sec
     auto startTime = std::chrono::high_resolution_clock::now();
     for(uint64_t i=0; i < ITERATIONS; i++){
-        bool r = plainCallback();
+        bool r = callbackFunction();
         (void)r;
     }
     auto endTime = std::chrono::high_resolution_clock::now();
@@ -36,7 +42,7 @@ int main(){
 
 
 
-    // CallbackQueueNaive() empty:          ~ 71.1 Mio/sec      |   ~ 44.1 Mio/sec
+    // CallbackQueueNaive() empty:          ~ 84.7 Mio/sec      |   ~ 44.1 Mio/sec
     startTime = std::chrono::high_resolution_clock::now();
     for(uint64_t i=0; i < ITERATIONS; i++){
         queueNaive.execute();
@@ -44,33 +50,33 @@ int main(){
     endTime = std::chrono::high_resolution_clock::now();
     std::cout << "CallbackQueueNaive() empty: " << (ITERATIONS * 1000000) / std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count() << "/s" << std::endl;
 
-    // CallbackQueueNaive() 1x:             ~ 21.5 Mio/sec      |   ~ 13.8 Mio/sec
+    // CallbackQueueNaive() 1x:             ~ 23.6 Mio/sec      |   ~ 13.8 Mio/sec
     startTime = std::chrono::high_resolution_clock::now();
     for(uint64_t i=0; i < ITERATIONS; i++){
-        queueNaive.push([](){return true;});
+        queueNaive.push(callbackFunction);
         queueNaive.execute();
     }
     endTime = std::chrono::high_resolution_clock::now();
     std::cout << "CallbackQueueNaive() 1x: " << (ITERATIONS * 1000000) / std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count() << "/s" << std::endl;
 
-    // CallbackQueueNaive() 2x:             ~ 14.1 Mio/sec      |   ~ 8.0 Mio/sec
+    // CallbackQueueNaive() 2x:             ~ 14.7 Mio/sec      |   ~ 8.0 Mio/sec
     startTime = std::chrono::high_resolution_clock::now();
     for(uint64_t i=0; i < ITERATIONS; i++){
-        queueNaive.push([](){return true;});
-        queueNaive.push([](){return true;});
+        queueNaive.push(callbackFunction);
+        queueNaive.push(callbackFunction);
         queueNaive.execute();
     }
     endTime = std::chrono::high_resolution_clock::now();
     std::cout << "CallbackQueueNaive() 2x: " << (ITERATIONS * 1000000) / std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count() << "/s" << std::endl;
 
-    // CallbackQueueNaive() 5x:             ~ 6.3 Mio/sec       |   ~ 3.6 Mio/sec
+    // CallbackQueueNaive() 5x:             ~ 6.7 Mio/sec       |   ~ 3.6 Mio/sec
     startTime = std::chrono::high_resolution_clock::now();
     for(uint64_t i=0; i < ITERATIONS; i++){
-        queueNaive.push([](){return true;});
-        queueNaive.push([](){return true;});
-        queueNaive.push([](){return true;});
-        queueNaive.push([](){return true;});
-        queueNaive.push([](){return true;});
+        queueNaive.push(callbackFunction);
+        queueNaive.push(callbackFunction);
+        queueNaive.push(callbackFunction);
+        queueNaive.push(callbackFunction);
+        queueNaive.push(callbackFunction);
         queueNaive.execute();
     }
     endTime = std::chrono::high_resolution_clock::now();
@@ -81,7 +87,7 @@ int main(){
 
 
 
-    // CallbackQueueRecycle() empty:        ~ 85.9 Mio/sec      |   ~ 43.9 Mio/sec
+    // CallbackQueueRecycle() empty:        ~ 87.8 Mio/sec      |   ~ 43.9 Mio/sec
     startTime = std::chrono::high_resolution_clock::now();
     for(uint32_t i=0; i < ITERATIONS; i++){
         queueRecycle.execute();
@@ -92,7 +98,7 @@ int main(){
     // CallbackQueueRecycle() 1x:           ~ 13.9 Mio/sec      |   ~ 9.0 Mio/sec
     startTime = std::chrono::high_resolution_clock::now();
     for(uint32_t i=0; i < ITERATIONS; i++){
-        queueRecycle.push([](){return true;});
+        queueRecycle.push(callbackFunction);
         queueRecycle.execute();
     }
     endTime = std::chrono::high_resolution_clock::now();
@@ -101,8 +107,8 @@ int main(){
     // CallbackQueueRecycle() 2x:           ~ 7.7 Mio/sec       |   ~ 4.9 Mio/sec
     startTime = std::chrono::high_resolution_clock::now();
     for(uint32_t i=0; i < ITERATIONS; i++){
-        queueRecycle.push([](){return true;});
-        queueRecycle.push([](){return true;});
+        queueRecycle.push(callbackFunction);
+        queueRecycle.push(callbackFunction);
         queueRecycle.execute();
     }
     endTime = std::chrono::high_resolution_clock::now();
@@ -111,11 +117,11 @@ int main(){
     // CallbackQueueRecycle() 5x:          ~ 3.2 Mio/sec        |   ~ 2.0 Mio/sec
     startTime = std::chrono::high_resolution_clock::now();
     for(uint32_t i=0; i < ITERATIONS; i++){
-        queueRecycle.push([](){return true;});
-        queueRecycle.push([](){return true;});
-        queueRecycle.push([](){return true;});
-        queueRecycle.push([](){return true;});
-        queueRecycle.push([](){return true;});
+        queueRecycle.push(callbackFunction);
+        queueRecycle.push(callbackFunction);
+        queueRecycle.push(callbackFunction);
+        queueRecycle.push(callbackFunction);
+        queueRecycle.push(callbackFunction);
         queueRecycle.execute();
     }
     endTime = std::chrono::high_resolution_clock::now();
@@ -126,52 +132,52 @@ int main(){
 
 
 
-    // CallbackQueueLock() empty:       ~ 105.8 Mio/sec         |   ~ 26.9 Mio/sec
+    // CallbackQueueThreadSafe() empty:     ~ 108.4 Mio/sec     |   ~ 37.3 Mio/sec
     startTime = std::chrono::high_resolution_clock::now();
     for(uint32_t i=0; i < ITERATIONS; i++){
-        queueLock.execute();
+        queueThreadSafe.execute();
     }
     endTime = std::chrono::high_resolution_clock::now();
-    std::cout << "CallbackQueueLock() empty: " << (ITERATIONS * 1000000) / std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count() << "/s" << std::endl;
+    std::cout << "CallbackQueueThreadSafe() empty: " << (ITERATIONS * 1000000) / std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count() << "/s" << std::endl;
     
-    // CallbackQueueLock() 1x:          ~ 16.8 Mio/sec          |   ~ 9.2 Mio/sec
+    // CallbackQueueThreadSafe() 1x:        ~ 45.2 Mio/sec      |   ~ 15.1 Mio/sec
     startTime = std::chrono::high_resolution_clock::now();
     for(uint32_t i=0; i < ITERATIONS; i++){
-        queueLock.push([](){return true;});
-        queueLock.execute();
+        queueThreadSafe.push(callbackFunction);
+        queueThreadSafe.execute();
     }
     endTime = std::chrono::high_resolution_clock::now();
-    std::cout << "CallbackQueueLock() 1x: " << (ITERATIONS * 1000000) / std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count() << "/s" << std::endl;
+    std::cout << "CallbackQueueThreadSafe() 1x: " << (ITERATIONS * 1000000) / std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count() << "/s" << std::endl;
 
-    // CallbackQueueLock() 2x:          ~ 9.3 Mio/sec           |   ~ 5.4 Mio/sec
+    // CallbackQueueThreadSafe() 2x:        ~ 29.3 Mio/sec      |   ~ 9.4 Mio/sec
     startTime = std::chrono::high_resolution_clock::now();
     for(uint32_t i=0; i < ITERATIONS; i++){
-        queueLock.push([](){return true;});
-        queueLock.push([](){return true;});
-        queueLock.execute();
+        queueThreadSafe.push(callbackFunction);
+        queueThreadSafe.push(callbackFunction);
+        queueThreadSafe.execute();
     }
     endTime = std::chrono::high_resolution_clock::now();
-    std::cout << "CallbackQueueLock() 2x: " << (ITERATIONS * 1000000) / std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count() << "/s" << std::endl;
+    std::cout << "CallbackQueueThreadSafe() 2x: " << (ITERATIONS * 1000000) / std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count() << "/s" << std::endl;
 
-    // CallbackQueueLock() 5x:          ~ 3.6 Mio/sec           |   ~ 2.4 Mio/sec
+    // CallbackQueueThreadSafe() 5x:        ~ 14.9 Mio/sec      |   ~ 4.5 Mio/sec
     startTime = std::chrono::high_resolution_clock::now();
     for(uint32_t i=0; i < ITERATIONS; i++){
-        queueLock.push([](){return true;});
-        queueLock.push([](){return true;});
-        queueLock.push([](){return true;});
-        queueLock.push([](){return true;});
-        queueLock.push([](){return true;});
-        queueLock.execute();
+        queueThreadSafe.push(callbackFunction);
+        queueThreadSafe.push(callbackFunction);
+        queueThreadSafe.push(callbackFunction);
+        queueThreadSafe.push(callbackFunction);
+        queueThreadSafe.push(callbackFunction);
+        queueThreadSafe.execute();
     }
     endTime = std::chrono::high_resolution_clock::now();
-    std::cout << "CallbackQueueLock() 5x: " << (ITERATIONS * 1000000) / std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count() << "/s" << std::endl;
+    std::cout << "CallbackQueueThreadSafe() 5x: " << (ITERATIONS * 1000000) / std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count() << "/s" << std::endl;
     std::cout << std::endl;
     
 
 
 
 
-    // CallbackQueueTwoParty() empty:   ~ 1215.2 Mio/sec        |   ~ 301.5 Mio/sec
+    // CallbackQueueTwoParty() empty:       ~ 1500.8 Mio/sec    |   ~ 403.4 Mio/sec
     startTime = std::chrono::high_resolution_clock::now();
     for(uint32_t i=0; i < ITERATIONS; i++){
         queueTwoParty.execute();
@@ -179,33 +185,33 @@ int main(){
     endTime = std::chrono::high_resolution_clock::now();
     std::cout << "CallbackQueueTwoParty() empty: " << (ITERATIONS * 1000000) / std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count() << "/s" << std::endl;
     
-    // CallbackQueueTwoParty() 1x:      ~ 258.7 Mio/sec         |   ~ 61.0 Mio/sec
+    // CallbackQueueTwoParty() 1x:          ~ 265.1 Mio/sec     |   ~ 61.1 Mio/sec
     startTime = std::chrono::high_resolution_clock::now();
     for(uint32_t i=0; i < ITERATIONS; i++){
-        queueTwoParty.push([](){return true;});
+        queueTwoParty.push(callbackFunction);
         queueTwoParty.execute();
     }
     endTime = std::chrono::high_resolution_clock::now();
     std::cout << "CallbackQueueTwoParty() 1x: " << (ITERATIONS * 1000000) / std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count() << "/s" << std::endl;
 
-    // CallbackQueueTwoParty() 2x:      ~ 132.7 Mio/sec         |   ~ 33.5 Mio/sec
+    // CallbackQueueTwoParty() 2x:          ~ 109.9 Mio/sec     |   ~ 30.7 Mio/sec
     startTime = std::chrono::high_resolution_clock::now();
     for(uint32_t i=0; i < ITERATIONS; i++){
-        queueTwoParty.push([](){return true;});
-        queueTwoParty.push([](){return true;});
+        queueTwoParty.push(callbackFunction);
+        queueTwoParty.push(callbackFunction);
         queueTwoParty.execute();
     }
     endTime = std::chrono::high_resolution_clock::now();
     std::cout << "CallbackQueueTwoParty() 2x: " << (ITERATIONS * 1000000) / std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count() << "/s" << std::endl;
 
-    // CallbackQueueTwoParty() 5x:      ~ 57.0 Mio/sec          |   ~ 14.3 Mio/sec
+    // CallbackQueueTwoParty() 5x:          ~ 56.1 Mio/sec      |   ~ 13.7 Mio/sec
     startTime = std::chrono::high_resolution_clock::now();
     for(uint32_t i=0; i < ITERATIONS; i++){
-        queueTwoParty.push([](){return true;});
-        queueTwoParty.push([](){return true;});
-        queueTwoParty.push([](){return true;});
-        queueTwoParty.push([](){return true;});
-        queueTwoParty.push([](){return true;});
+        queueTwoParty.push(callbackFunction);
+        queueTwoParty.push(callbackFunction);
+        queueTwoParty.push(callbackFunction);
+        queueTwoParty.push(callbackFunction);
+        queueTwoParty.push(callbackFunction);
         queueTwoParty.execute();
     }
     endTime = std::chrono::high_resolution_clock::now();

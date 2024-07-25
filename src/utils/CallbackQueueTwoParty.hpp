@@ -16,13 +16,15 @@ namespace spi {
 
 
 
-template<typename Callback, typename... Args>
+template<typename Callback, typename... CallbackArgs>
 class CallbackQueueTwoParty {
 protected:
 
     struct Node {
-        Callback callback = nullptr;
+        Callback callback;
         Node* next = nullptr;
+
+        Node(Callback callback) : callback(callback) {}
 
         std::string toString() const {
             return "{id="+std::to_string((uint16_t)(uint64_t)(void**)this)+
@@ -39,11 +41,11 @@ protected:
 
 public:
 
-    CallbackQueueTwoParty() {
-        Node* dummy = new Node();
+    CallbackQueueTwoParty(Callback defaultCb) {
+        Node* dummy = new Node(defaultCb);
         head = dummy;
         tail = dummy;
-        Node* dummy2 = new Node();
+        Node* dummy2 = new Node(defaultCb);
         recycleHead = dummy2;
         recycleTail = dummy2;
     }
@@ -61,7 +63,7 @@ public:
     }
 
 
-    void cancelAll(){
+    void cancelAll() noexcept {
         while(head->next != nullptr){
             Node* oldHead = head;
             head = oldHead->next;
@@ -79,17 +81,17 @@ public:
      * 
      * @param callback Callback that will be queued and executed later.
      */
-    void push(Callback callback){
+    void push(Callback callback) noexcept {
         Node* newNode;
         if(recycleHead->next != nullptr){
             newNode = recycleHead;
             recycleHead = recycleHead->next;
             newNode->next = nullptr;
+            newNode->callback = callback;
         } else {
-            newNode = new Node();
+            newNode = new Node(callback);
         }
         Node* oldTail = tail;
-        oldTail->callback = callback;
         tail = newNode;
         oldTail->next = newNode;
     }
@@ -107,7 +109,7 @@ public:
      * @param args Arguments that will be passed to the callback functions.
      * @return True if all callbacks got successfully executed and no more are left in the queue.
      */
-    bool execute(Args... args){
+    bool execute(CallbackArgs... args){
         while(head->next != nullptr){
             Node* oldHead = head;
             head = head->next;
@@ -122,105 +124,6 @@ public:
             if(cb == nullptr) throw std::runtime_error("CallbackQueueTwoParty: Callback is nullptr"); // TODO REMOVE
             if(!cb(args...)) return false;
         }
-        return true;
-    }
-
-    std::string toString() const {
-        return "CallbackQueueTwoParty{ head="+(head != nullptr ? head->toString() : "nullptr")+
-                                "; tail="+(tail != nullptr ? tail->toString() : "nullptr")+" }";
-    }
-};
-
-
-template<typename Callback, typename... Args>
-class CallbackQueueTwoPartyOLD {
-protected:
-
-    struct Entry {
-        Callback callback = nullptr;
-        Entry* next = nullptr;
-
-        std::string toString() const {
-            return "{id="+std::to_string((uint16_t)(uint64_t)(void**)this)+
-                        "; cb="+(callback!=nullptr ? "true" :  "nullptr")+
-                        "}"+(next!=nullptr ? "->"+next->toString() : "");
-        }
-    };
-
-    Entry* head = nullptr;
-    Entry* tail = nullptr;
-    ReadOrWriteAccess access;
-
-public:
-
-    CallbackQueueTwoPartyOLD(bool reduceCpuUsage) : access(reduceCpuUsage) {
-        
-    }
-
-    ~CallbackQueueTwoPartyOLD(){
-        cancelAll();
-    }
-
-
-    void cancelAll(){
-        access.accessWrite();
-        while(this->head != nullptr){
-            Entry* oldHead = this->head;
-            this->head = oldHead->next;
-            delete oldHead;
-        }
-        access.releaseWrite();
-    }
-
-    
-    /**
-     * Queues a callback function that will be executed 
-     * when the execute() method gets invoked.
-     * Callback will be popped from queue when it returns true.
-     * 
-     * This method is thread safe.
-     * 
-     * @param callback Callback that will be queued and executed later.
-     */
-    void push(Callback callback){
-        access.accessRead();
-        Entry* entry = new Entry();
-        entry->callback = callback;
-        if(this->tail != nullptr){
-            this->tail->next = entry;
-        } else {
-            this->head = entry;
-        }
-        this->tail = entry;
-        access.releaseRead();
-    }
-
-    /**
-     * Executes queued callbacks one after another as long as each 
-     * callback returns true. As soon as a callback returns false, 
-     * it won't be popped from the queue and the execution will stop 
-     * until this method gets invoked again.
-     * 
-     * Invoking this method while its already running will have no effect.
-     * 
-     * This method is thread safe.
-     * 
-     * @param args Arguments that will be passed to the callback functions.
-     * @return True if all callbacks got successfully executed and no more are left in the queue.
-     */
-    bool execute(Args... args){
-        access.accessWrite();
-        while(this->head != nullptr){
-            if(this->head->callback(args...)) {
-                Entry *oldHead = this->head;
-                this->head = oldHead->next;
-                delete oldHead;
-            } else {
-                access.releaseWrite();
-                return false;
-            }
-        }
-        access.releaseWrite();
         return true;
     }
 

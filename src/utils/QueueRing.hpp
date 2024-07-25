@@ -30,7 +30,7 @@ public:
     }
 
 
-    void push(T data) {
+    void push(T data){
         size_t oldCount = count.load();
         if(oldCount == this->data.size()) throw std::runtime_error("Queue is full");
         while(!count.compare_exchange_weak(oldCount, oldCount + 1)){
@@ -48,7 +48,7 @@ public:
         this->data[oldWriteOffset] = data;
     }
 
-    bool pop(T& data) {
+    bool pop(T& data) noexcept {
         size_t oldCount = count.load();
         if(oldCount == 0) return false;
         while(!count.compare_exchange_weak(oldCount, oldCount - 1)){
@@ -67,7 +67,7 @@ public:
         return true;
     }
 
-    bool empty() {
+    bool empty() noexcept {
         return count.load() == 0;
     }
 

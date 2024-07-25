@@ -57,7 +57,7 @@ public:
         cancelAll();
     }
 
-    void cancelAll(){
+    void cancelAll() noexcept {
         while(head != nullptr){
             Node* oldHead = head;
             head = oldHead->next;
@@ -70,7 +70,7 @@ public:
         }
     }
 
-    void push(T data) {
+    void push(T data) noexcept {
         Node* newNode;
         if(recycleCount.fetch_sub(1) == 1){
             recycleCount.fetch_add(1); // restore count because empty
@@ -86,7 +86,7 @@ public:
         count.fetch_add(1);
     }
 
-    bool pop(T& data) {
+    bool pop(T& data) noexcept {
         if(count.fetch_sub(1) == 1){
             count.fetch_add(1); // restore count because empty
             std::this_thread::yield(); // actually performs better with this!
@@ -103,7 +103,7 @@ public:
         return true;
     }
 
-    bool empty() {
+    bool empty() noexcept {
         return count.load() == 1; // one actually represents zero! (because of dummy node)
     }
 

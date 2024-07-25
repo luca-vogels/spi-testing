@@ -27,7 +27,7 @@ protected:
 public:
     RecycleObjectStoreQueue() = default;
 
-    ~RecycleObjectStoreQueue(){
+    ~RecycleObjectStoreQueue() noexcept {
         while(!available.empty()){
             delete available.front();
             available.pop();
@@ -35,7 +35,7 @@ public:
     }
 
 
-    inline T* acquire(){
+    inline T* acquire() noexcept {
         if(available.empty()){
             return new T();
         }
@@ -45,7 +45,7 @@ public:
     }
     
 
-    inline void release(T* obj){
+    inline void release(T* obj) noexcept {
         available.push(obj);   
     }
 
