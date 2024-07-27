@@ -27,14 +27,24 @@ public:
 
     QueueLock(bool reduceCpuUsage) : lock(reduceCpuUsage) {}
 
-    void push(T data) {
-        lock.lock(); //std::lock_guard<std::mutex> lock(mutex);
+    ~QueueLock() noexcept {
+        cancelAll();
+    }
+
+    void cancelAll() noexcept {
+        lock.lock();
+        while(!queue.empty()) queue.pop();
+        lock.unlock();
+    }
+
+    void push(T data) noexcept {
+        lock.lock();
         queue.push(data);
         lock.unlock();
     }
 
-    bool pop(T& data) {
-        lock.lock(); //std::lock_guard<std::mutex> lock(mutex);
+    bool pop(T& data) noexcept {
+        lock.lock();
         if(queue.empty()){
             lock.unlock();
             return false;
@@ -45,11 +55,25 @@ public:
         return true;
     }
 
-    bool empty() {
-        lock.lock(); //std::lock_guard<std::mutex> lock(mutex);
+    bool popAndCheckNext(T& data, bool &hasMore) noexcept {
+        lock.lock();
+        if(queue.empty()){
+            hasMore = false;
+            lock.unlock();
+            return false;
+        }
+        data = queue.front();
+        queue.pop();
+        hasMore = !queue.empty();
+        lock.unlock();
+        return true;
+    }
+
+    bool empty() noexcept {
+        lock.lock();
         bool result = queue.empty();
         lock.unlock();
-        return result; // return queue.empty();
+        return result;
     }
 
 };
@@ -75,9 +99,25 @@ public:
 
     QueueLockCustom(bool reduceCpuUsage) : lock(reduceCpuUsage), head(nullptr), tail(nullptr) {}
 
-    void push(T data) {
+    ~QueueLockCustom() noexcept {
+        cancelAll();
+    }
+
+
+    void cancelAll() noexcept {
+        lock.lock();
+        while(this->head != nullptr){
+            Node* oldHead = this->head;
+            this->head = oldHead->next;
+            delete oldHead;
+        }
+        this->tail = nullptr;
+        lock.unlock();
+    }
+
+    void push(T data) noexcept {
         Node* newNode = new Node(data, nullptr);
-        lock.lock(); //std::lock_guard<std::mutex> lock(mutex);
+        lock.lock();
         if(tail != nullptr) {
             tail->next = newNode;
         } else {
@@ -87,8 +127,8 @@ public:
         lock.unlock();
     }
 
-    bool pop(T& data) {
-        lock.lock(); //std::lock_guard<std::mutex> lock(mutex);
+    bool pop(T& data) noexcept {
+        lock.lock();
         if(head == nullptr){
             lock.unlock();
             return false;
@@ -102,21 +142,28 @@ public:
         return true;
     }
 
-    bool empty() {
-        lock.lock(); //std::lock_guard<std::mutex> lock(mutex);
-        bool result = head == nullptr;
+    bool popAndCheckNext(T& data, bool &hasMore) noexcept {
+        lock.lock();
+        if(head == nullptr){
+            hasMore = false;
+            lock.unlock();
+            return false;
+        }
+        data = head->data;
+        Node* oldHead = head;
+        head = head->next;
+        delete oldHead;
+        if(head == nullptr) tail = nullptr;
+        hasMore = head != nullptr;
         lock.unlock();
-        return result; // return head == nullptr;
+        return true;
     }
 
-    ~QueueLockCustom() {
+    bool empty() noexcept {
         lock.lock();
-        Node* h = head;
-        while(h != nullptr) {
-            Node* n = h->next;
-            delete h;
-            h = n;
-        }
+        bool result = head == nullptr;
+        lock.unlock();
+        return result;
     }
 
 };

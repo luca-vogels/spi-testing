@@ -41,7 +41,7 @@ int main(){
     std::cout << "Sequential QueueAtomic push & pop: " << (ITERATIONS * 1000000) / std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count() << "/s" << std::endl;
 
 
-    // Sequential QueueLock push & pop:                     ~ 66.8 Mio/sec  |   ~ 10.3 Mio/sec
+    // Sequential QueueLock push & pop:                     ~ 70.1 Mio/sec  |   ~ 10.3 Mio/sec
     startTime = std::chrono::high_resolution_clock::now();
     for(uint64_t i=0; i < ITERATIONS; i++){
         queueLock.push(i);
@@ -51,7 +51,7 @@ int main(){
     std::cout << "Sequential QueueLock push & pop: " << (ITERATIONS * 1000000) / std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count() << "/s" << std::endl;
 
 
-    // Sequential QueueLockCustom push & pop:               ~ 34.0 Mio/sec  |   ~ 14.6 Mio/sec
+    // Sequential QueueLockCustom push & pop:               ~ 35.4 Mio/sec  |   ~ 14.6 Mio/sec
     startTime = std::chrono::high_resolution_clock::now();
     for(uint64_t i=0; i < ITERATIONS; i++){
         queueLockCustom.push(i);
@@ -160,7 +160,7 @@ int main(){
     threads.clear();
 
 
-    // Parallel QueueLockCustom push & pop:                 ~ 22.2 Mio/sec  |   ~ 9.0 Mio/sec
+    // Parallel QueueLockCustom push & pop:                 ~ 30.2 Mio/sec  |   ~ 9.0 Mio/sec
     for(size_t i=0; i < THREADS; i++){
         threads.push_back(new Thread([&ITERATIONS, &queueLockCustom](){
             uint64_t result;
