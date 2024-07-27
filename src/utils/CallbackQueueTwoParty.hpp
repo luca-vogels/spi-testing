@@ -16,6 +16,17 @@ namespace spi {
 
 
 
+/**
+ * Callback queue that stores callback functions 
+ * and executes them one after another.
+ * 
+ * IMPORTANT:   this implementation is more performant,
+ *              HOWEVER only a single thread for pushing
+ *              and a single thread for executing is allowed!
+ * 
+ * @tparam Callback Type of the callback function that returns a bool to indicate if execution was successful.
+ * @tparam CallbackArgs Arguments that will be passed to the callback functions.
+ */
 template<typename Callback, typename... CallbackArgs>
 class CallbackQueueTwoParty {
 protected:
@@ -41,11 +52,11 @@ protected:
 
 public:
 
-    CallbackQueueTwoParty(Callback defaultCb) {
-        Node* dummy = new Node(defaultCb);
+    CallbackQueueTwoParty(Callback dummyCb) {
+        Node* dummy = new Node(dummyCb);
         head = dummy;
         tail = dummy;
-        Node* dummy2 = new Node(defaultCb);
+        Node* dummy2 = new Node(dummyCb);
         recycleHead = dummy2;
         recycleTail = dummy2;
     }
@@ -113,23 +124,23 @@ public:
         while(head->next != nullptr){
             Node* oldHead = head;
             head = head->next;
-            const Callback cb = oldHead->callback;
-            if(cb == nullptr) throw std::runtime_error("CallbackQueueTwoParty: Callback is nullptr"); // TODO REMOVE
+            Callback cb = oldHead->callback;
+            //if(cb == nullptr) throw std::runtime_error("CallbackQueueTwoParty: Callback is nullptr"); // TODO REMOVE
 
             oldHead->next = nullptr;
             Node* oldRecycleTail = recycleTail;
             recycleTail = oldHead;
             oldRecycleTail->next = oldHead;
 
-            if(cb == nullptr) throw std::runtime_error("CallbackQueueTwoParty: Callback is nullptr"); // TODO REMOVE
+            //if(cb == nullptr) throw std::runtime_error("CallbackQueueTwoParty: Callback is nullptr"); // TODO REMOVE
             if(!cb(args...)) return false;
         }
         return true;
     }
 
     std::string toString() const {
-        return "CallbackQueueTwoParty{ head="+(head != nullptr ? head->toString() : "nullptr")+
-                                "; tail="+(tail != nullptr ? tail->toString() : "nullptr")+" }";
+        return "CallbackQueueTwoParty(head="+(head != nullptr ? head->toString() : "nullptr")+
+                                "; tail="+(tail != nullptr ? tail->toString() : "nullptr")+")";
     }
 };
 

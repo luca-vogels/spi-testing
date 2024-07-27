@@ -18,8 +18,8 @@ int main(){
     const size_t THREADS = 2;
 
     QueueAtomic<uint64_t> queueAtomic;
-    QueueLock<uint64_t> queueLock;
-    QueueLockCustom<uint64_t> queueLockCustom;
+    QueueLock<uint64_t> queueLock(false);
+    QueueLockCustom<uint64_t> queueLockCustom(false);
     moodycamel::ConcurrentQueue<uint64_t> queueMoodyCamel;
     QueueRing<uint64_t> queueRing(20);
     QueueTwoPartyAtomic<uint64_t> queueTwoPartyAtomic;
@@ -41,7 +41,7 @@ int main(){
     std::cout << "Sequential QueueAtomic push & pop: " << (ITERATIONS * 1000000) / std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count() << "/s" << std::endl;
 
 
-    // Sequential QueueLock push & pop:                     ~ 53.5 Mio/sec  |   ~ 9.0 Mio/sec
+    // Sequential QueueLock push & pop:                     ~ 66.8 Mio/sec  |   ~ 10.3 Mio/sec
     startTime = std::chrono::high_resolution_clock::now();
     for(uint64_t i=0; i < ITERATIONS; i++){
         queueLock.push(i);
@@ -51,7 +51,7 @@ int main(){
     std::cout << "Sequential QueueLock push & pop: " << (ITERATIONS * 1000000) / std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count() << "/s" << std::endl;
 
 
-    // Sequential QueueLockCustom push & pop:               ~ 31.0 Mio/sec  |   ~ 13.6 Mio/sec
+    // Sequential QueueLockCustom push & pop:               ~ 34.0 Mio/sec  |   ~ 14.6 Mio/sec
     startTime = std::chrono::high_resolution_clock::now();
     for(uint64_t i=0; i < ITERATIONS; i++){
         queueLockCustom.push(i);
@@ -141,7 +141,7 @@ int main(){
     std::cout << "Parallel QueueAtomic push & pop:   not thread-safe" << std::endl;
 
 
-    // Parallel QueueLock push & pop:                       ~ 6.9 Mio/sec  |   ~ 2.3 Mio/sec
+    // Parallel QueueLock push & pop:                       ~ 49.1 Mio/sec  |   ~ 8.9 Mio/sec
     for(size_t i=0; i < THREADS; i++){
         threads.push_back(new Thread([&ITERATIONS, &queueLock](){
             uint64_t result;
@@ -160,7 +160,7 @@ int main(){
     threads.clear();
 
 
-    // Parallel QueueLockCustom push & pop:                 ~ 4.7 Mio/sec  |   ~ 3.3 Mio/sec
+    // Parallel QueueLockCustom push & pop:                 ~ 22.2 Mio/sec  |   ~ 9.0 Mio/sec
     for(size_t i=0; i < THREADS; i++){
         threads.push_back(new Thread([&ITERATIONS, &queueLockCustom](){
             uint64_t result;
@@ -217,7 +217,7 @@ int main(){
     threads.clear();
 
 
-    // Parallel QueueTwoPartyAtomic push & pop:             ~ 11.1 Mio/sec  |   ~ 9.1 Mio/sec
+    // Parallel QueueTwoPartyAtomic push & pop:             ~ 7.6 Mio/sec  |   ~ 9.1 Mio/sec
     if(THREADS == 2){
         threads.push_back(new Thread([&ITERATIONS, &queueTwoPartyAtomic](){
             for(uint64_t i=0; i < ITERATIONS/THREADS; i++){
@@ -267,7 +267,7 @@ int main(){
     }*/
 
 
-    // Parallel QueueTwoPartyNoCritical push & pop:         ~ 17.3 Mio/sec  |   ~ 37.2 Mio/sec  
+    // Parallel QueueTwoPartyNoCritical push & pop:         ~ 75.6 Mio/sec  |   ~ 37.2 Mio/sec  
     if(THREADS == 2){
         threads.push_back(new Thread([&ITERATIONS, &queueTwoPartyNoCritical](){
             uint64_t i=0;

@@ -50,7 +50,7 @@ public:
         unlock();
     }
 
-    void lock() noexcept {
+    inline void lock() noexcept {
         if(reduceCpuUsage){
             mtx.lock();
             return;
@@ -67,7 +67,7 @@ public:
         }
     }
 
-    void unlock() noexcept {
+    inline void unlock() noexcept {
         if(reduceCpuUsage){
             mtx.unlock();
             return;
@@ -94,7 +94,7 @@ public:
      * Otherwise immediately returns with minimal overhead.
      * @param needToPause 
      */
-    void check(std::function<void()> needToPause = nullptr) noexcept {
+    inline void check(std::function<void()> needToPause = nullptr) noexcept {
         while(!proceed) {
             if(needToPause != nullptr){
                 needToPause();
@@ -210,7 +210,7 @@ public:
      * Reader will pause until the writer is done 
      * and will then acquire exlucsive access.
      */
-    void accessRead() noexcept {
+    inline void accessRead() noexcept {
         if(multithreaded){
             if(simultaneousReads){
                 mtx.lock_shared();
@@ -232,7 +232,7 @@ public:
      * Writer will pause until the reader is done
      * and will then acquire exlucsive access.
      */
-    void accessWrite() noexcept {
+    inline void accessWrite() noexcept {
         if(multithreaded){
             mtx.lock();
         } else {
@@ -249,7 +249,7 @@ public:
     /**
      * Invoked by the reader to release the resource.
      */
-    void releaseRead() noexcept {
+    inline void releaseRead() noexcept {
         if(multithreaded){
             if(simultaneousReads){
                 mtx.unlock_shared();
@@ -264,7 +264,7 @@ public:
     /**
      * Invoked by the writer to release the resource.
      */
-    void releaseWrite() noexcept {
+    inline void releaseWrite() noexcept {
         if(multithreaded){
             mtx.unlock();
         } else {

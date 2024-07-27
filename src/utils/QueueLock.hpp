@@ -8,6 +8,8 @@
 #ifndef SPI_QUEUE_LOCK_HPP
 #define SPI_QUEUE_LOCK_HPP
 
+#include "./ThreadSynchronization.hpp"
+
 #include <queue>
 #include <mutex>
 
@@ -18,27 +20,36 @@ template<typename T>
 class QueueLock {
 protected:
 
-    std::mutex mutex;
+    Lock lock;
     std::queue<T> queue;
 
 public:
 
+    QueueLock(bool reduceCpuUsage) : lock(reduceCpuUsage) {}
+
     void push(T data) {
-        std::lock_guard<std::mutex> lock(mutex);
+        lock.lock(); //std::lock_guard<std::mutex> lock(mutex);
         queue.push(data);
+        lock.unlock();
     }
 
     bool pop(T& data) {
-        std::lock_guard<std::mutex> lock(mutex);
-        if(queue.empty()) return false;
+        lock.lock(); //std::lock_guard<std::mutex> lock(mutex);
+        if(queue.empty()){
+            lock.unlock();
+            return false;
+        }
         data = queue.front();
         queue.pop();
+        lock.unlock();
         return true;
     }
 
     bool empty() {
-        std::lock_guard<std::mutex> lock(mutex);
-        return queue.empty();
+        lock.lock(); //std::lock_guard<std::mutex> lock(mutex);
+        bool result = queue.empty();
+        lock.unlock();
+        return result; // return queue.empty();
     }
 
 };
@@ -56,42 +67,50 @@ protected:
         Node(T data, Node* next) : data(data), next(next) {}
     };
 
-    std::mutex mutex;
+    Lock lock;
     Node* head;
     Node* tail;
 
 public:
 
-    QueueLockCustom() : head(nullptr), tail(nullptr) {}
+    QueueLockCustom(bool reduceCpuUsage) : lock(reduceCpuUsage), head(nullptr), tail(nullptr) {}
 
     void push(T data) {
         Node* newNode = new Node(data, nullptr);
-        std::lock_guard<std::mutex> lock(mutex);
+        lock.lock(); //std::lock_guard<std::mutex> lock(mutex);
         if(tail != nullptr) {
             tail->next = newNode;
         } else {
             head = newNode;
         }
         tail = newNode;
+        lock.unlock();
     }
 
     bool pop(T& data) {
-        std::lock_guard<std::mutex> lock(mutex);
-        if(head == nullptr) return false;
+        lock.lock(); //std::lock_guard<std::mutex> lock(mutex);
+        if(head == nullptr){
+            lock.unlock();
+            return false;
+        }
         data = head->data;
         Node* oldHead = head;
         head = head->next;
         delete oldHead;
         if(head == nullptr) tail = nullptr;
+        lock.unlock();
         return true;
     }
 
     bool empty() {
-        std::lock_guard<std::mutex> lock(mutex);
-        return head == nullptr;
+        lock.lock(); //std::lock_guard<std::mutex> lock(mutex);
+        bool result = head == nullptr;
+        lock.unlock();
+        return result; // return head == nullptr;
     }
 
     ~QueueLockCustom() {
+        lock.lock();
         Node* h = head;
         while(h != nullptr) {
             Node* n = h->next;

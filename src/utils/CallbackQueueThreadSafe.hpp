@@ -62,7 +62,7 @@ public:
     }
 
 
-    void cancelAll(){
+    void cancelAll() noexcept {
         std::lock_guard<std::mutex> lock(mutex);
         while(this->head != nullptr){
             Entry* oldHead = this->head;
@@ -89,7 +89,7 @@ public:
      * 
      * @param callback Callback that will be queued and executed later.
      */
-    void push(Callback callback){
+    void push(Callback callback) noexcept {
         Entry* entry;
         std::lock_guard<std::mutex> lock(mutex);
         if(this->recycleHead != nullptr){
@@ -150,8 +150,8 @@ public:
 
     std::string toString() const {
         Entry *tail = this->tail.load();
-        return "CallbackQueueThreadSafe{ head="+(head != nullptr ? head->toString() : "nullptr")+
-                                "; tail="+(tail != nullptr ? tail->toString() : "nullptr")+" }";
+        return "CallbackQueueThreadSafe(head="+(head != nullptr ? head->toString() : "nullptr")+
+                                "; tail="+(tail != nullptr ? tail->toString() : "nullptr")+")";
     }
 };
 
