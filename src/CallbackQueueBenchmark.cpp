@@ -22,7 +22,7 @@ int main(){
     CallbackQueueNaive queueNaive;
     CallbackQueueRecycle queueRecycle;
     CallbackQueueThreadSafe<bool(*)()> queueThreadSafe;
-    CallbackQueueTwoParty<bool(*)()> queueTwoParty(callbackFunction);
+    CallbackQueueTwoParty<bool(*)()> queueTwoParty;
 
 
     //                                      RELEASE             |   DEBUG
