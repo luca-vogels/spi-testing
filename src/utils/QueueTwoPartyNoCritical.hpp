@@ -83,8 +83,8 @@ public:
             newNode = new Node();
         }
         Node* oldTail = tail;
-        tail = newNode;
         oldTail->data = data;
+        tail = newNode;
         oldTail->next = newNode;
     }
 

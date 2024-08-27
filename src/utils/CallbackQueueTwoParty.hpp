@@ -100,8 +100,8 @@ public:
             newNode = new Node(callback);
         }
         Node* oldTail = tail;
-        tail = newNode;
         oldTail->callback = callback;
+        tail = newNode;
         oldTail->next = newNode;
     }
 
