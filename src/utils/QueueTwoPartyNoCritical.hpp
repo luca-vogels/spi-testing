@@ -33,9 +33,7 @@ protected:
 
     struct Node {
         T data;
-        Node* next;
-
-        //Node(T data, Node* next) : data(data), next(next) {}
+        Node* next = nullptr;
     };
 
     Node* head;
@@ -85,8 +83,8 @@ public:
             newNode = new Node();
         }
         Node* oldTail = tail;
-        oldTail->data = data;
         tail = newNode;
+        oldTail->data = data;
         oldTail->next = newNode;
     }
 

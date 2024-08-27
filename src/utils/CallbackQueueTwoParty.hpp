@@ -35,8 +35,6 @@ protected:
         Callback callback;
         Node* next = nullptr;
 
-        Node(Callback callback) : callback(callback) {}
-
         std::string toString() const {
             return "{id="+std::to_string((uint16_t)(uint64_t)(void**)this)+
                         "; cb="+(callback!=nullptr ? "true" :  "nullptr")+
@@ -52,11 +50,11 @@ protected:
 
 public:
 
-    CallbackQueueTwoParty(Callback dummyCb) {
-        Node* dummy = new Node(dummyCb);
+    CallbackQueueTwoParty() {
+        Node* dummy = new Node();
         head = dummy;
         tail = dummy;
-        Node* dummy2 = new Node(dummyCb);
+        Node* dummy2 = new Node();
         recycleHead = dummy2;
         recycleTail = dummy2;
     }
@@ -98,12 +96,12 @@ public:
             newNode = recycleHead;
             recycleHead = recycleHead->next;
             newNode->next = nullptr;
-            newNode->callback = callback;
         } else {
             newNode = new Node(callback);
         }
         Node* oldTail = tail;
         tail = newNode;
+        oldTail->callback = callback;
         oldTail->next = newNode;
     }
 

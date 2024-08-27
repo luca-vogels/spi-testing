@@ -24,6 +24,8 @@ target_link_libraries(copy_benchmark testing_lib)
 add_executable(dynamic_args_benchmark DynamicArgsBenchmark.cpp)
 target_link_libraries(dynamic_args_benchmark testing_lib)
 
+add_executable(endian_benchmark EndianBenchmark.cpp)
+
 add_executable(thread_synchronization_benchmark ThreadSynchronizationBenchmark.cpp)
 target_link_libraries(thread_synchronization_benchmark testing_lib)
 
