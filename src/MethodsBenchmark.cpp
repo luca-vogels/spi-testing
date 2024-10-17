@@ -48,7 +48,7 @@ int main(){
 
     //                                          RELEASE         |   DEBUG
 
-    // doBase():            ~ 409 Mio/s     |   ~ 191 Mio/s
+    // doBase():            ~ 408 Mio/s     |   ~ 191 Mio/s
     auto startTime = std::chrono::high_resolution_clock::now();
     for(uint64_t i=0; i < ITERATIONS; i++){
         obj.doBase();
@@ -57,7 +57,7 @@ int main(){
     std::cout << "doBase(): " << (ITERATIONS * 1000000) / std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count() << "/s" << std::endl;
 
 
-    // doDerived():         ~ 412 Mio/s     |   ~ 190 Mio/s
+    // doDerived():         ~ 417 Mio/s     |   ~ 190 Mio/s
     startTime = std::chrono::high_resolution_clock::now();
     for(uint64_t i=0; i < ITERATIONS; i++){
         obj.doDerived();
@@ -66,7 +66,7 @@ int main(){
     std::cout << "doDerived(): " << (ITERATIONS * 1000000) / std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count() << "/s" << std::endl;
 
 
-    // doVirtual():         ~ 404 Mio/s     |   ~ 191 Mio/s
+    // doVirtual():         ~ 416 Mio/s     |   ~ 191 Mio/s
     startTime = std::chrono::high_resolution_clock::now();
     for(uint64_t i=0; i < ITERATIONS; i++){
         obj.doVirtual();
@@ -75,7 +75,7 @@ int main(){
     std::cout << "doVirtual(): " << (ITERATIONS * 1000000) / std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count() << "/s" << std::endl;
 
 
-    // doPureVirtual():     ~ 383 Mio/s     |   ~ 191 Mio/s
+    // doPureVirtual():     ~ 415 Mio/s     |   ~ 191 Mio/s
     startTime = std::chrono::high_resolution_clock::now();
     for(uint64_t i=0; i < ITERATIONS; i++){
         obj.doPureVirtual();
