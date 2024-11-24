@@ -1,4 +1,5 @@
 set(TESTING_SRC
+  Atomic.hpp
   CallbackQueueNaive.hpp
   CallbackQueueRecycle.hpp
   CallbackQueueThreadSafe.hpp
@@ -8,6 +9,7 @@ set(TESTING_SRC
   Future.hpp
   Future.cpp
   HardwareUtils.hpp
+  Lock.hpp
   QueueAtomic.hpp
   QueueLock.hpp
   QueueMoodyCamel.hpp

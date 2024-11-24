@@ -8,7 +8,7 @@
 #ifndef SPI_QUEUE_LOCK_HPP
 #define SPI_QUEUE_LOCK_HPP
 
-#include "./ThreadSynchronization.hpp"
+#include "./Lock.hpp"
 
 #include <queue>
 #include <mutex>

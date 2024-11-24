@@ -3,7 +3,7 @@
 #include <iostream>
 
 #include "utils/Thread.hpp"
-#include "utils/ThreadSynchronization.hpp"
+#include "utils/Lock.hpp"
 
 #include <condition_variable>
 #include <mutex>

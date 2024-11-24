@@ -9,7 +9,7 @@
 #ifndef SPI_QUEUE_TWOPARTY_LC_HPP
 #define SPI_QUEUE_TWOPARTY_LC_HPP
 
-#include "./ThreadSynchronization.hpp"
+#include "./Lock.hpp"
 
 #include <string>
 

@@ -32,6 +32,12 @@ target_link_libraries(future_benchmark testing_lib)
 add_executable(future_tests FutureTests.cpp)
 target_link_libraries(future_tests testing_lib)
 
+add_executable(lock_benchmark LockBenchmark.cpp)
+target_link_libraries(lock_benchmark testing_lib)
+
+add_executable(lock_test LockTest.cpp)
+target_link_libraries(lock_test testing_lib)
+
 add_executable(methods_benchmark MethodsBenchmark.cpp)
 
 add_executable(mutex_benchmark MutexBenchmark.cpp)
@@ -47,12 +53,6 @@ add_executable(recycle_object_store_test RecycleObjectStoreTest.cpp)
 target_link_libraries(recycle_object_store_test testing_lib)
 
 add_executable(smartptr_benchmark SmartPtrBenchmark.cpp)
-
-add_executable(thread_synchronization_benchmark ThreadSynchronizationBenchmark.cpp)
-target_link_libraries(thread_synchronization_benchmark testing_lib)
-
-add_executable(thread_synchronization_test ThreadSynchronizationTest.cpp)
-target_link_libraries(thread_synchronization_test testing_lib)
 
 add_executable(time_utils_benchmark TimeUtilsBenchmark.cpp)
 target_link_libraries(time_utils_benchmark testing_lib)

@@ -1,12 +1,12 @@
 /**
  * Provides classes for thread synchronization.
  * 
- * @file ThreadSynchronization.hpp
+ * @file Lock.hpp
  * @author Luca Vogels (github@luca-vogels.com)
  */
 
-#ifndef SPI_THREAD_SYNCHRONIZATION_HPP
-#define SPI_THREAD_SYNCHRONIZATION_HPP
+#ifndef SPI_LOCK_HPP
+#define SPI_LOCK_HPP
 
 #include <atomic>
 #include <functional>
@@ -277,4 +277,4 @@ public:
 
 }
 
-#endif // SPI_THREAD_SYNCHRONIZATION_HPP
+#endif // SPI_LOCK_HPP

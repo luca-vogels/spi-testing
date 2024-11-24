@@ -8,7 +8,7 @@
 #ifndef CALLBACK_QUEUE_TWO_PARTY_HPP
 #define CALLBACK_QUEUE_TWO_PARTY_HPP
 
-#include "./ThreadSynchronization.hpp"
+#include "./Lock.hpp"
 
 #include <string>
 

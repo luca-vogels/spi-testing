@@ -1,4 +1,4 @@
-#include "./utils/ThreadSynchronization.hpp"
+#include "./utils/Lock.hpp"
 #include "./utils/Thread.hpp"
 
 #include <iostream>

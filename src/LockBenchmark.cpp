@@ -1,5 +1,5 @@
 #include "./utils/Thread.hpp"
-#include "./utils/ThreadSynchronization.hpp"
+#include "./utils/Lock.hpp"
 
 #include <iostream>
 #include <mutex>
