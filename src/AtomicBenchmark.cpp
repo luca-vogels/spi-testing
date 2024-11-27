@@ -24,6 +24,7 @@ int main(){
     MyStruct* VAL2 = new MyStruct();
     std::atomic<MyStruct*> atomicStruct{VAL1};
     std::atomic<int> atomicInt{0};
+    std::counting_semaphore<2> semaphore{2};
     Atomic<int> atomicTwoparty(false, 0);
 
 
@@ -125,14 +126,12 @@ int main(){
     // atomicTwoparty.compareExchange():    ~ 610 Mio/sec   |   ~ 45 Mio/sec
     startTime = std::chrono::high_resolution_clock::now();
     for(uint64_t i=0; i < HALF_ITERATIONS; i++){
-        atomicTwoparty.compareExchangeA(1, 2);
-        atomicTwoparty.compareExchangeA(2, 1);
+        atomicTwoparty.compareExchangeStrongA(1, 2);
+        atomicTwoparty.compareExchangeStrongA(2, 1);
     }
     endTime = std::chrono::high_resolution_clock::now();
     std::cout << "atomicTwoparty.compareExchange(): " << (ITERATIONS * 1000000) / std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count() << "/s" << std::endl;
     std::cout << std::endl;
-
-
 
 
     // new MyStruct() with delete:          ~ 15 Mio/sec |  ~ 15 Mio/sec

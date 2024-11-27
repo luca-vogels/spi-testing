@@ -21,6 +21,12 @@ target_link_libraries(callback_queue_benchmark testing_lib)
 add_executable(copy_benchmark CopyBenchmark.cpp)
 target_link_libraries(copy_benchmark testing_lib)
 
+add_executable(counting_lock_benchmark CountingLockBenchmark.cpp)
+target_link_libraries(counting_lock_benchmark testing_lib)
+
+add_executable(counting_lock_test CountingLockTest.cpp)
+target_link_libraries(counting_lock_test testing_lib)
+
 add_executable(dynamic_args_benchmark DynamicArgsBenchmark.cpp)
 target_link_libraries(dynamic_args_benchmark testing_lib)
 

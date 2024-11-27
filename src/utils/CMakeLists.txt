@@ -4,6 +4,7 @@ set(TESTING_SRC
   CallbackQueueRecycle.hpp
   CallbackQueueThreadSafe.hpp
   CallbackQueueTwoParty.hpp
+  CountingLock.hpp
   FlowRepresentation.hpp
   FlowRepresentation.cpp
   Future.hpp

@@ -153,7 +153,7 @@ public:
      * @param order Memory order.
      * @return True if the exchange was successful, false otherwise.
      */
-    virtual bool compareExchangeA(T expected, T desired, std::memory_order order = std::memory_order_seq_cst) = 0;
+    virtual bool compareExchangeStrongA(T expected, T desired, std::memory_order order = std::memory_order_seq_cst) = 0;
 
     /**
      * Atomically compares the current value with a given value and exchanges it if it matches 
@@ -166,7 +166,35 @@ public:
      * @param order Memory order.
      * @return True if the exchange was successful, false otherwise.
      */
-    virtual bool compareExchangeB(T expected, T desired, std::memory_order order = std::memory_order_seq_cst) = 0;
+    virtual bool compareExchangeStrongB(T expected, T desired, std::memory_order order = std::memory_order_seq_cst) = 0;
+    
+    /**
+     * Atomically compares the current value with a given value and exchanges it if it matches 
+     * in the view of the thread group A.
+     * However, this method is allowed to fail spuriously but will yield better performance in loops.
+     * 
+     * Both thread groups A and B share the same underlying atomic value.
+     * 
+     * @param expected Expected value.
+     * @param desired Desired value to set if the current value matches the expected value.
+     * @param order Memory order.
+     * @return True if the exchange was successful, false otherwise.
+     */
+    virtual bool compareExchangeWeakA(T expected, T desired, std::memory_order order = std::memory_order_seq_cst) = 0;
+
+    /**
+     * Atomically compares the current value with a given value and exchanges it if it matches 
+     * in the view of the thread group B.
+     * However, this method is allowed to fail spuriously but will yield better performance in loops.
+     * 
+     * Both thread groups A and B share the same underlying atomic value.
+     * 
+     * @param expected Expected value.
+     * @param desired Desired value to set if the current value matches the expected value.
+     * @param order Memory order.
+     * @return True if the exchange was successful, false otherwise.
+     */
+    virtual bool compareExchangeWeakB(T expected, T desired, std::memory_order order = std::memory_order_seq_cst) = 0;
 };
 
 
@@ -196,51 +224,59 @@ public:
     AtomicThreadSafe(T value) : atomic(value) {}
 
     inline void storeA(T value, std::memory_order order = std::memory_order_seq_cst) override {
-        atomic.store(value, order = std::memory_order_seq_cst);
+        atomic.store(value, order);
     }
 
     inline void storeB(T value, std::memory_order order = std::memory_order_seq_cst) override {
-        atomic.store(value, order = std::memory_order_seq_cst);
+        atomic.store(value, order);
     }
 
     inline T loadA(std::memory_order order = std::memory_order_seq_cst) override {
-        return atomic.load(order = std::memory_order_seq_cst);
+        return atomic.load(order);
     }
 
     inline T loadB(std::memory_order order = std::memory_order_seq_cst) override {
-        return atomic.load(order = std::memory_order_seq_cst);
+        return atomic.load(order);
     }
 
     inline T fetchAddA(T value, std::memory_order order = std::memory_order_seq_cst) override {
-        return atomic.fetch_add(value, order = std::memory_order_seq_cst);
+        return atomic.fetch_add(value, order);
     }
 
     inline T fetchAddB(T value, std::memory_order order = std::memory_order_seq_cst) override {
-        return atomic.fetch_add(value, order = std::memory_order_seq_cst);
+        return atomic.fetch_add(value, order);
     }
 
     inline T fetchSubA(T value, std::memory_order order = std::memory_order_seq_cst) override {
-        return atomic.fetch_sub(value, order = std::memory_order_seq_cst);
+        return atomic.fetch_sub(value, order);
     }
 
     inline T fetchSubB(T value, std::memory_order order = std::memory_order_seq_cst) override {
-        return atomic.fetch_sub(value, order = std::memory_order_seq_cst);
+        return atomic.fetch_sub(value, order);
     }
 
     inline T exchangeA(T value, std::memory_order order = std::memory_order_seq_cst) override {
-        return atomic.exchange(value, order = std::memory_order_seq_cst);
+        return atomic.exchange(value, order);
     }
 
     inline T exchangeB(T value, std::memory_order order = std::memory_order_seq_cst) override {
-        return atomic.exchange(value, order = std::memory_order_seq_cst);
+        return atomic.exchange(value, order);
     }
 
-    inline bool compareExchangeA(T expected, T desired, std::memory_order order = std::memory_order_seq_cst) override {
-        return atomic.compare_exchange_strong(expected, desired, order = std::memory_order_seq_cst);
+    inline bool compareExchangeStrongA(T expected, T desired, std::memory_order order = std::memory_order_seq_cst) override {
+        return atomic.compare_exchange_strong(expected, desired, order);
     }
 
-    inline bool compareExchangeB(T expected, T desired, std::memory_order order = std::memory_order_seq_cst) override {
-        return atomic.compare_exchange_strong(expected, desired, order = std::memory_order_seq_cst);
+    inline bool compareExchangeStrongB(T expected, T desired, std::memory_order order = std::memory_order_seq_cst) override {
+        return atomic.compare_exchange_strong(expected, desired, order);
+    }
+
+    inline bool compareExchangeWeakA(T expected, T desired, std::memory_order order = std::memory_order_seq_cst) override {
+        return atomic.compare_exchange_weak(expected, desired, order);
+    }
+
+    inline bool compareExchangeWeakB(T expected, T desired, std::memory_order order = std::memory_order_seq_cst) override {
+        return atomic.compare_exchange_weak(expected, desired, order);
     }
 
 };
@@ -372,7 +408,7 @@ public:
         return tmp;
     }
 
-    inline bool compareExchangeA(T expected, T desired, std::memory_order order = std::memory_order_seq_cst) override {
+    inline bool compareExchangeStrongA(T expected, T desired, std::memory_order order = std::memory_order_seq_cst) override {
         (void)order;
         lock.accessRead();
         if(this->value == expected){
@@ -384,7 +420,31 @@ public:
         return false;
     }
 
-    inline bool compareExchangeB(T expected, T desired, std::memory_order order = std::memory_order_seq_cst) override {
+    inline bool compareExchangeStrongB(T expected, T desired, std::memory_order order = std::memory_order_seq_cst) override {
+        (void)order;
+        lock.accessWrite();
+        if(this->value == expected){
+            this->value = desired;
+            lock.releaseWrite();
+            return true;
+        }
+        lock.releaseWrite();
+        return false;
+    }
+
+    inline bool compareExchangeWeakA(T expected, T desired, std::memory_order order = std::memory_order_seq_cst) override {
+        (void)order;
+        lock.accessRead();
+        if(this->value == expected){
+            this->value = desired;
+            lock.releaseRead();
+            return true;
+        }
+        lock.releaseRead();
+        return false;
+    }
+
+    inline bool compareExchangeWeakB(T expected, T desired, std::memory_order order = std::memory_order_seq_cst) override {
         (void)order;
         lock.accessWrite();
         if(this->value == expected){
@@ -517,19 +577,35 @@ public:
         }
     }
 
-    inline bool compareExchangeA(T expected, T desired, std::memory_order order = std::memory_order_seq_cst) override {
+    inline bool compareExchangeStrongA(T expected, T desired, std::memory_order order = std::memory_order_seq_cst) override {
         if(multithreaded){
-            return atomicThreadSafe.compareExchangeA(expected, desired, order);
+            return atomicThreadSafe.compareExchangeStrongA(expected, desired, order);
         } else {
-            return atomicTwoParty.compareExchangeA(expected, desired, order);
+            return atomicTwoParty.compareExchangeStrongA(expected, desired, order);
         }
     }
 
-    inline bool compareExchangeB(T expected, T desired, std::memory_order order = std::memory_order_seq_cst) override {
+    inline bool compareExchangeStrongB(T expected, T desired, std::memory_order order = std::memory_order_seq_cst) override {
         if(multithreaded){
-            return atomicThreadSafe.compareExchangeB(expected, desired, order);
+            return atomicThreadSafe.compareExchangeStrongB(expected, desired, order);
         } else {
-            return atomicTwoParty.compareExchangeB(expected, desired, order);
+            return atomicTwoParty.compareExchangeStrongB(expected, desired, order);
+        }
+    }
+
+    inline bool compareExchangeWeakA(T expected, T desired, std::memory_order order = std::memory_order_seq_cst) override {
+        if(multithreaded){
+            return atomicThreadSafe.compareExchangeWeakA(expected, desired, order);
+        } else {
+            return atomicTwoParty.compareExchangeWeakA(expected, desired, order);
+        }
+    }
+
+    inline bool compareExchangeWeakB(T expected, T desired, std::memory_order order = std::memory_order_seq_cst) override {
+        if(multithreaded){
+            return atomicThreadSafe.compareExchangeWeakB(expected, desired, order);
+        } else {
+            return atomicTwoParty.compareExchangeWeakB(expected, desired, order);
         }
     }
 };
