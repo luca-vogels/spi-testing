@@ -54,9 +54,9 @@ public:
     inline void acquire() override {
         int32_t curr;
         while(true){
-            curr = counter.loadA();
+            curr = counter.loadA(std::memory_order_acquire);
             if(curr < maxCounter){
-                if(counter.compareExchangeWeakA(curr, curr+1)){
+                if(counter.compareExchangeWeakA(curr, curr+1, std::memory_order_acquire)){
                     return;
                 }
             } else {
@@ -69,9 +69,9 @@ public:
     inline void release() override {
         int32_t curr;
         while(true){
-            curr = counter.loadB();
+            curr = counter.loadB(, std::memory_order_release);
             if(curr > 0){
-                if(counter.compareExchangeWeakB(curr, curr-1)){
+                if(counter.compareExchangeWeakB(curr, curr-1, std::memory_order_release)){
                     cv.notify_all();
                     return;
                 }
@@ -106,7 +106,7 @@ public:
             if(curr < maxCounter){
                 return;
             } else {
-                counter.fetchSubA(1, std::memory_order_release);
+                counter.fetchSubA(1, std::memory_order_acquire);
                 std::unique_lock<std::mutex> lock(mutex);
                 cv.wait(lock);
             }
@@ -114,7 +114,7 @@ public:
     }
 
     inline void release() override {
-        int32_t old = counter.fetchSubB(1, std::memory_order_acquire);
+        int32_t old = counter.fetchSubB(1, std::memory_order_release);
         if(old <= 0){
             counter.fetchAddB(1, std::memory_order_release);
             throw std::runtime_error("Counter is already at 0.");
@@ -127,7 +127,7 @@ public:
 
 
 
-class CountingLockSemaphore : public AbstractCountingLock{
+class CountingLockSemaphore : public AbstractCountingLock {
 protected:
     std::counting_semaphore<65535> counter;
 
