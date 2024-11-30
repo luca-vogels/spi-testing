@@ -10,7 +10,7 @@ using namespace spi;
 
 
 void executeSimpleTest(AbstractCountingLock* lock){
-    std::atomic<uint32_t> accessCounter{0};
+    std::atomic<int32_t> accessCounter{0};
     Thread thr1([&accessCounter, lock]{
         for(uint32_t i=0; i < 10; i++){
             lock->acquire();
@@ -77,8 +77,8 @@ void runSimpleTest(){
 
 
 
-void executeMultiThreadedTest(AbstractCountingLock* lock, const uint32_t MAX, const uint32_t THREADS, const uint32_t ITERATIONS){
-    std::atomic<uint32_t> accessCounter{0};
+void executeMultiThreadedTest(AbstractCountingLock* lock, const int32_t MAX, const uint32_t THREADS, const uint32_t ITERATIONS){
+    std::atomic<int32_t> accessCounter{0};
     std::vector<Thread*> threads;
     std::vector<uint32_t> progress; // for each thread
     bool done = false;
@@ -88,10 +88,13 @@ void executeMultiThreadedTest(AbstractCountingLock* lock, const uint32_t MAX, co
         threads.push_back(new Thread([&accessCounter, &progress, threadId, lock, MAX, ITERATIONS]{
             for(uint32_t i=0; i < ITERATIONS; i++){
                 lock->acquire();
-                uint32_t check = accessCounter.fetch_add(1) + 1;
+                int32_t check = accessCounter.fetch_add(1) + 1;
                 if(check > MAX){
                     std::cout << "[ERROR] Counter should be smaller than "+std::to_string(MAX)+" but it is "+std::to_string(check) << std::endl;
                     // throw std::runtime_error("Counter should be smaller than "+std::to_string(MAX)+" but it is "+std::to_string(check));
+                } else if(check < 0){
+                    std::cout << "[ERROR] Counter should be at least 0 but it is "+std::to_string(check) << std::endl;
+                    // throw std::runtime_error("Counter should be at least 0 but it is "+std::to_string(check));
                 }
 
                 Thread::sleepMs(1+threadId);
@@ -100,6 +103,9 @@ void executeMultiThreadedTest(AbstractCountingLock* lock, const uint32_t MAX, co
                 if(check > MAX){
                     std::cout << "[ERROR] Counter should be smaller than "+std::to_string(MAX)+" but it is "+std::to_string(check) << std::endl;
                     // throw std::runtime_error("Counter should be smaller than "+std::to_string(MAX)+" but it is "+std::to_string(check));
+                } else if(check < 0){
+                    std::cout << "[ERROR] Counter should be at least 0 but it is "+std::to_string(check) << std::endl;
+                    // throw std::runtime_error("Counter should be at least 0 but it is "+std::to_string(check));
                 }
                 lock->release();
 
@@ -169,7 +175,7 @@ void runHighContentionTest(){
 
     std::cout << "Starting High Contention Test: CountingLockCompSwap" << std::endl;
     AbstractCountingLock* lockCompSwap = new CountingLockCompSwap(MAX, false, true);
-    executeMultiThreadedTest(lockCompSwap, MAX, THREADS, ITERATIONS);
+    executeMultiThreadedTest(lockCompSwap, (int32_t)MAX, THREADS, ITERATIONS);
     delete lockCompSwap;
     std::cout << "Completed High Contention Test: CountingLockCompSwap" << std::endl;
     std::cout << std::endl;
@@ -177,7 +183,7 @@ void runHighContentionTest(){
 
     std::cout << "Starting High Contention Test: CountingLockFetch" << std::endl;
     AbstractCountingLock* lockFetch = new CountingLockFetch(MAX, false, true);
-    executeMultiThreadedTest(lockFetch, MAX, THREADS, ITERATIONS);
+    executeMultiThreadedTest(lockFetch, (int32_t)MAX, THREADS, ITERATIONS);
     delete lockFetch;
     std::cout << "Completed High Contention Test: CountingLockFetch" << std::endl;
     std::cout << std::endl;
@@ -185,7 +191,7 @@ void runHighContentionTest(){
 
     std::cout << "Starting High Contention Test: CountingLockSemaphore" << std::endl;
     AbstractCountingLock* lockSemaphore= new CountingLockSemaphore(MAX);
-    executeMultiThreadedTest(lockSemaphore, MAX, THREADS, ITERATIONS);
+    executeMultiThreadedTest(lockSemaphore, (int32_t)MAX, THREADS, ITERATIONS);
     delete lockSemaphore;
     std::cout << "Completed High Contention Test: CountingLockSemaphore" << std::endl;
     std::cout << std::endl;
