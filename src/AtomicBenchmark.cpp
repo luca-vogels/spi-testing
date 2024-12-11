@@ -28,7 +28,7 @@ int main(){
     Atomic<int> atomicTwoparty(false, 0);
 
 
-    //                              RELEASE         |   DEBUG
+    //                                      RELEASE         |   DEBUG
 
     // std::atomic.store():                 ~ 172 Mio/sec   |   ~ 100 Mio/sec
     auto startTime = std::chrono::high_resolution_clock::now();

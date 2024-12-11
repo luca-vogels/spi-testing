@@ -8,7 +8,7 @@ project(testing)
 # How this project should be build. Possible values are:
 # - Release     Best performance without additional overhead
 # - Debug       Adds debug infos and enables sanitizers
-set(CMAKE_BUILD_TYPE "Release")
+set(CMAKE_BUILD_TYPE "Debug")
 
 
 # Compiler Options

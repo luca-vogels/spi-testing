@@ -358,7 +358,7 @@ public:
         (void)order;
         lock.accessRead();
         T tmp = this->value;
-        this->value += value;
+        this->value = this->value + value;
         lock.releaseRead();
         return tmp;
     }
@@ -367,7 +367,7 @@ public:
         (void)order;
         lock.accessWrite();
         T tmp = this->value;
-        this->value += value;
+        this->value = this->value + value;
         lock.releaseWrite();
         return tmp;
     }
@@ -376,7 +376,7 @@ public:
         (void)order;
         lock.accessRead();
         T tmp = this->value;
-        this->value -= value;
+        this->value = this->value - value;
         lock.releaseRead();
         return tmp;
     }
@@ -385,7 +385,7 @@ public:
         (void)order;
         lock.accessWrite();
         T tmp = this->value;
-        this->value -= value;
+        this->value = this->value - value;
         lock.releaseWrite();
         return tmp;
     }

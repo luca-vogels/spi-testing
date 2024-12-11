@@ -25,7 +25,6 @@
 namespace spi {
 class HardwareUtils; // defined in HardwareUtils.hpp
 
-typedef int32_t ThreadID;
 typedef std::function<void()> Task;
 
 class Cancellable {
@@ -166,7 +165,7 @@ protected:
 
         void kill(){
             if(this->thr != nullptr && this->tid >= 0){
-                throw std::runtime_error("Killing a thread is considered bad practice");
+                //Logger::error("Killing a thread is considered bad practice", __FILE__, __LINE__);
                 delete this->thr;
             }
             this->thr = nullptr;
@@ -201,8 +200,8 @@ protected:
                     CPU_SET(cpu, &cpuset); // specific CPU
             }
 
-            if(sched_setaffinity(this->tid, sizeof(cpuset), &cpuset) < 0)
-                throw std::runtime_error("Could not set CPU affinity using sched_setaffinity() for threadId="+std::to_string(this->tid));
+            /*if(sched_setaffinity(this->tid, sizeof(cpuset), &cpuset) < 0)
+                Logger::warn("Could not set CPU affinity using sched_setaffinity() for threadId="+std::to_string(this->tid), __FILE__, __LINE__);*/
         }
 
         void execute(){
@@ -278,6 +277,7 @@ public:
         auto entry = (this->current != nullptr && this->current->thr != nullptr) ? threadIdToOsId.find(this->current->threadId) : threadIdToOsId.end();
         if(entry == threadIdToOsId.end()){
             std::string error = "Thread that isn't running does not have a PID";
+            //Logger::error(error, __FILE__, __LINE__);
             throw std::runtime_error(error);
         }
         return entry->second;

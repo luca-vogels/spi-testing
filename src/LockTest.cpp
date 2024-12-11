@@ -1,6 +1,7 @@
 #include "./utils/Lock.hpp"
 #include "./utils/Thread.hpp"
 
+#include <cmath>
 #include <iostream>
 #include <stdexcept>
 
@@ -35,11 +36,11 @@ void runSpinLock(size_t myId){
 // ReadOrWriteAccess
 const bool READ_OR_WRITE_ACCESS_TEST = true;
 const size_t READ_OR_WRITE_ACCESS_ITERATIONS = 100000;
-ReadOrWriteAccess readOrWriteAccess(false, false, true);
+ReadOrWriteAccess readOrWriteAccess(false, false, false);
 volatile int readAccessCounter = 0;
 volatile int writeAccessCounter = 0;
 
-void runReadOrWriteAccessREAD(){
+void runReadOrWriteAccessREAD(size_t &progress){
     for(size_t i=0; i < READ_OR_WRITE_ACCESS_ITERATIONS; i++){
         readOrWriteAccess.accessRead();
 
@@ -49,6 +50,7 @@ void runReadOrWriteAccessREAD(){
         if(currRead != 1 || currWrite != 0)
             throw std::runtime_error("Multiple readers at the same time A: reads="+std::to_string(currRead)+" writes="+std::to_string(currWrite)+" i="+std::to_string(i));
 
+        progress = i;
         Thread::sleepUs(1); // needed so compiler does not rearrange code
 
         readAccessCounter = readAccessCounter - 1;
@@ -61,7 +63,7 @@ void runReadOrWriteAccessREAD(){
     }
 }
 
-void runReadOrWriteAccessWRITE(){
+void runReadOrWriteAccessWRITE(size_t &progress){
     for(size_t i=0; i < READ_OR_WRITE_ACCESS_ITERATIONS; i++){
         readOrWriteAccess.accessWrite();
 
@@ -71,6 +73,7 @@ void runReadOrWriteAccessWRITE(){
         if(currWrite != 1 || currRead != 0)
             throw std::runtime_error("Multiple writes at the same time A: writes="+std::to_string(currWrite)+" reads="+std::to_string(currRead)+" i="+std::to_string(i));
 
+        progress = i;
         Thread::sleepUs(1); // needed so compiler does not rearrange code
 
         writeAccessCounter = writeAccessCounter - 1;
@@ -109,10 +112,20 @@ int main(){
     // ReadOrWriteAccess
     if(READ_OR_WRITE_ACCESS_TEST){
         std::cout << "ReadOrWriteAccess test" << std::endl;
-        Thread reader(runReadOrWriteAccessREAD);
+        size_t readerProgress = 0, writerProgress = 0;
+        Thread reader([&readerProgress]{ runReadOrWriteAccessREAD(readerProgress); });
+        Thread writer([&writerProgress]{ runReadOrWriteAccessWRITE(writerProgress); });
         reader.start();
-        runReadOrWriteAccessWRITE();
+        writer.start();
+        do {
+            Thread::sleepSec(2);
+            std::cout << "Reader: " << readerProgress << "/" << READ_OR_WRITE_ACCESS_ITERATIONS <<
+                            " (" << std::floor(readerProgress*100/READ_OR_WRITE_ACCESS_ITERATIONS) << "%) | " << 
+                        " Writer: " << writerProgress << "/" << READ_OR_WRITE_ACCESS_ITERATIONS << 
+                            " (" << std::floor(writerProgress*100/READ_OR_WRITE_ACCESS_ITERATIONS) << "%) | " << std::endl;
+        } while(reader.isRunning() || writer.isRunning());  
         reader.join();
+        writer.join();
         std::cout << "ReadOrWriteAccess test passed" << std::endl;
     }
 

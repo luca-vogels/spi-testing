@@ -220,10 +220,8 @@ public:
         } else {
             read = true;
             writersTurn = true;
-            while(write && writersTurn) {
-                if(reduceCpuUsage) {
-                    std::this_thread::yield();
-                }
+            while(write && writersTurn){
+                std::this_thread::yield();
             }
         }
     }
@@ -238,10 +236,8 @@ public:
         } else {
             write = true;
             writersTurn = false;
-            while(read && !writersTurn) {
-                if(reduceCpuUsage) {
-                    std::this_thread::yield();
-                }
+            while(read && !writersTurn){
+                std::this_thread::yield();
             }
         }
     }
