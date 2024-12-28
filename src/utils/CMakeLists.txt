@@ -11,6 +11,7 @@ set(TESTING_SRC
   Future.cpp
   HardwareUtils.hpp
   Lock.hpp
+  MetricsUtils.hpp
   QueueAtomic.hpp
   QueueLock.hpp
   QueueMoodyCamel.hpp
