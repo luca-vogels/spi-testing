@@ -158,7 +158,7 @@ int main(){
 
 
 
-    // zero-copy-edit small:        ~ 311 Mio/sec   |   ~ 222 Mio/sec
+    // zero-copy-edit small:        ~ 313 Mio/sec   |   ~ 222 Mio/sec
     startTime = std::chrono::high_resolution_clock::now();
     for(uint64_t i=0; i < ITERATIONS_ZERO_COPY; i++){
         volatile uint32_t tmp = *(uint32_t*)(smallBuf1 + 0);
@@ -168,7 +168,7 @@ int main(){
     endTime = std::chrono::high_resolution_clock::now();
     std::cout << "zero-copy-edit small: " << (ITERATIONS_ZERO_COPY * 1000000) / std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count() << "/s" << std::endl;
 
-    // zero-copy-edit medium:       ~ 313 Mio/sec   |   ~ 240 Mio/sec
+    // zero-copy-edit medium:       ~ 315 Mio/sec   |   ~ 240 Mio/sec
     startTime = std::chrono::high_resolution_clock::now();
     for(uint64_t i=0; i < ITERATIONS_ZERO_COPY; i++){
         volatile uint32_t tmp = *(uint32_t*)(mediumBuf1 + 6);
@@ -178,7 +178,7 @@ int main(){
     endTime = std::chrono::high_resolution_clock::now();
     std::cout << "zero-copy-edit medium: " << (ITERATIONS_ZERO_COPY * 1000000) / std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count() << "/s" << std::endl;
 
-    // zero-copy-edit large:        ~ 297 Mio/sec |   ~ 227 Mio/sec
+    // zero-copy-edit large:        ~ 314 Mio/sec   |   ~ 227 Mio/sec
     startTime = std::chrono::high_resolution_clock::now();
     for(uint64_t i=0; i < ITERATIONS_ZERO_COPY; i++){
         volatile uint32_t tmp = *(uint32_t*)(largeBuf1 + 6);
@@ -188,7 +188,7 @@ int main(){
     endTime = std::chrono::high_resolution_clock::now();
     std::cout << "zero-copy-edit large: " << (ITERATIONS_ZERO_COPY * 1000000) / std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count() << "/s" << std::endl;
 
-    // zero-copy-edit mega:         ~ 0.1 /sec      |   ~ 250 /sec
+    // zero-copy-edit mega:         ~ 314 Mio/sec   |   ~ 250 /sec
     startTime = std::chrono::high_resolution_clock::now();
     for(uint64_t i=0; i < ITERATIONS_ZERO_COPY; i++){
         volatile uint32_t tmp = *(uint32_t*)(megaLargeBuf1 + 6);
