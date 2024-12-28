@@ -19,6 +19,8 @@ int main(){
     const uint64_t ITERATIONS_LARGE = 500000;
     const uint64_t ITERATIONS_MEGA_LARGE = 5000;
 
+    const uint64_t ITERATIONS_ZERO_COPY = 500000000;
+
     const uint64_t SMALL_BUF_SIZE = 32; // 32B
     const uint64_t MEDIUM_BUF_SIZE = 2048; // 2KB
     const uint64_t LARGE_BUF_SIZE = 1024*128; // 128KB
@@ -56,7 +58,7 @@ int main(){
 
 
 
-    // copy small:                                  |   ~ 513 Mio/sec        ~ 17 GB/s   |   ~ 17 GB/s           
+    // copy small:                  ~ 2864 Mio/sec  |   ~ 79 Mio/sec        ~ 92 GB/s   |   ~ 2.5 GB/s           
     auto startTime = std::chrono::high_resolution_clock::now();
     for(uint64_t i=0; i < ITERATIONS_SMALL; i++){
         std::memcpy(smallBuf2, smallBuf1, SMALL_BUF_SIZE);
@@ -66,7 +68,7 @@ int main(){
     int64_t iterationsPerSec = 2 * ITERATIONS_SMALL * 1000000 / std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count();
     std::cout << "copy small: \t" << MetricsUtils::bytesPerSecToString(iterationsPerSec * SMALL_BUF_SIZE) << " | \t" << iterationsPerSec << "op/s" << std::endl;
 
-    // copy medium:                 ~ 56 Mio/sec    ~ 116 GB/s
+    // copy medium:                 ~ 36 Mio/sec    |   ~ 29 Mio/sec        ~ 75 GB/s   |   ~ 60 GB/s
     startTime = std::chrono::high_resolution_clock::now();
     for(uint64_t i=0; i < ITERATIONS_MEDIUM; i++){
         std::memcpy(mediumBuf2, mediumBuf1, MEDIUM_BUF_SIZE);
@@ -76,7 +78,7 @@ int main(){
     iterationsPerSec = 2 * ITERATIONS_MEDIUM * 1000000 / std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count();
     std::cout << "copy medium: \t" << MetricsUtils::bytesPerSecToString(iterationsPerSec * MEDIUM_BUF_SIZE) << " | \t" << iterationsPerSec << "op/s" << std::endl;
 
-    // copy large:                  ~ 464 Kilo/sec  |   ~61 GB/s
+    // copy large:                  ~ 354 Kilo/sec  |   ~ 352 Kilo/sec      ~ 46 GB/s   |   ~ 46 GB/s
     startTime = std::chrono::high_resolution_clock::now();
     for(uint64_t i=0; i < ITERATIONS_LARGE; i++){
         std::memcpy(largeBuf2, largeBuf1, LARGE_BUF_SIZE);
@@ -86,7 +88,7 @@ int main(){
     iterationsPerSec = 2 * ITERATIONS_LARGE * 1000000 / std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count();
     std::cout << "copy large: \t" << MetricsUtils::bytesPerSecToString(iterationsPerSec * LARGE_BUF_SIZE) << " | \t" << iterationsPerSec << "op/s" << std::endl;
 
-    // copy mega:                   ~ 1416 /sec     |   ~ 12 GB/s
+    // copy mega:                   ~ 1380 /sec     |   ~ 1394 /sec         ~ 11 GB/s   |   ~ 11 GB/s
     startTime = std::chrono::high_resolution_clock::now();
     for(uint64_t i=0; i < ITERATIONS_MEGA_LARGE; i++){
         std::memcpy(megaLargeBuf2, megaLargeBuf1, MEGA_LARGE_BUF_SIZE);
@@ -101,7 +103,7 @@ int main(){
 
 
 
-    // copy-edit-copy small:        ~ 305 Mio/sec   |   ~ 98 Mio/sec
+    // copy-edit-copy small:        ~ 115 Mio/sec   |   ~ 38 Mio/sec
     startTime = std::chrono::high_resolution_clock::now();
     for(uint64_t i=0; i < ITERATIONS_SMALL; i++){
         std::memcpy(smallBuf2, smallBuf1, SMALL_BUF_SIZE);
@@ -113,7 +115,7 @@ int main(){
     endTime = std::chrono::high_resolution_clock::now();
     std::cout << "copy-edit-copy small: \t" << (ITERATIONS_SMALL * 1000000) / std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count() << "/s" << std::endl;
 
-    // copy-edit-copy medium:       ~ 24 Mio/sec    |   ~ 26 Mio/sec
+    // copy-edit-copy medium:       ~ 16 Mio/sec    |   ~ 14 Mio/sec
     startTime = std::chrono::high_resolution_clock::now();
     for(uint64_t i=0; i < ITERATIONS_MEDIUM; i++){
         std::memcpy(mediumBuf2, mediumBuf1, MEDIUM_BUF_SIZE);
@@ -125,7 +127,7 @@ int main(){
     endTime = std::chrono::high_resolution_clock::now();
     std::cout << "copy-edit-copy medium: \t" << (ITERATIONS_MEDIUM * 1000000) / std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count() << "/s" << std::endl;
 
-    // copy-edit-copy large:        ~ 3583 /sec     |   ~ 231 Kilo/sec
+    // copy-edit-copy large:        ~ 169 Kilo/sec  |   ~ 173 Kilo/sec
     startTime = std::chrono::high_resolution_clock::now();
     for(uint64_t i=0; i < ITERATIONS_LARGE; i++){
         std::memcpy(largeBuf2, largeBuf1, LARGE_BUF_SIZE);
@@ -137,7 +139,7 @@ int main(){
     endTime = std::chrono::high_resolution_clock::now();
     std::cout << "copy-edit-copy large: \t" << (ITERATIONS_LARGE * 1000000) / std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count() << "/s" << std::endl;
     
-    // copy-edit-copy mega:         ~ 0.1 /sec      |   ~ 720 /sec
+    // copy-edit-copy mega:         ~ 692 /sec      |   ~ 695 /sec
     startTime = std::chrono::high_resolution_clock::now();
     for(uint64_t i=0; i < ITERATIONS_MEGA_LARGE; i++){
         std::memcpy(megaLargeBuf2, megaLargeBuf1, MEGA_LARGE_BUF_SIZE);
@@ -156,45 +158,45 @@ int main(){
 
 
 
-    // zero-copy-edit small:        ~ 312 Mio/sec   |   ~ 288 Mio/sec
+    // zero-copy-edit small:        ~ 311 Mio/sec   |   ~ 222 Mio/sec
     startTime = std::chrono::high_resolution_clock::now();
-    for(uint64_t i=0; i < ITERATIONS_SMALL; i++){
+    for(uint64_t i=0; i < ITERATIONS_ZERO_COPY; i++){
         volatile uint32_t tmp = *(uint32_t*)(smallBuf1 + 0);
         tmp = tmp + (uint32_t)i;
         *(uint32_t*)(smallBuf1 + 0) = tmp;
     }
     endTime = std::chrono::high_resolution_clock::now();
-    std::cout << "zero-copy-edit small: " << (ITERATIONS_SMALL * 1000000) / std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count() << "/s" << std::endl;
+    std::cout << "zero-copy-edit small: " << (ITERATIONS_ZERO_COPY * 1000000) / std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count() << "/s" << std::endl;
 
-    // zero-copy-edit medium:       ~ 312 Mio/sec   |   ~ 277 Mio/sec
+    // zero-copy-edit medium:       ~ 313 Mio/sec   |   ~ 240 Mio/sec
     startTime = std::chrono::high_resolution_clock::now();
-    for(uint64_t i=0; i < ITERATIONS_MEDIUM; i++){
+    for(uint64_t i=0; i < ITERATIONS_ZERO_COPY; i++){
         volatile uint32_t tmp = *(uint32_t*)(mediumBuf1 + 6);
         tmp = tmp + (uint32_t)i;
         *(uint32_t*)(mediumBuf1 + 6) = tmp;
     }
     endTime = std::chrono::high_resolution_clock::now();
-    std::cout << "zero-copy-edit medium: " << (ITERATIONS_MEDIUM * 1000000) / std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count() << "/s" << std::endl;
+    std::cout << "zero-copy-edit medium: " << (ITERATIONS_ZERO_COPY * 1000000) / std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count() << "/s" << std::endl;
 
-    // zero-copy-edit large:        ~ 279 Mio/sec |   ~ 276 Mio/sec
+    // zero-copy-edit large:        ~ 297 Mio/sec |   ~ 227 Mio/sec
     startTime = std::chrono::high_resolution_clock::now();
-    for(uint64_t i=0; i < ITERATIONS_LARGE; i++){
+    for(uint64_t i=0; i < ITERATIONS_ZERO_COPY; i++){
         volatile uint32_t tmp = *(uint32_t*)(largeBuf1 + 6);
         tmp = tmp + (uint32_t)i;
         *(uint32_t*)(largeBuf1 + 6) = tmp;
     }
     endTime = std::chrono::high_resolution_clock::now();
-    std::cout << "zero-copy-edit large: " << (ITERATIONS_LARGE * 1000000) / std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count() << "/s" << std::endl;
+    std::cout << "zero-copy-edit large: " << (ITERATIONS_ZERO_COPY * 1000000) / std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count() << "/s" << std::endl;
 
-    // zero-copy-edit mega:         ~ 0.1 /sec      |   ~ 263 /sec
+    // zero-copy-edit mega:         ~ 0.1 /sec      |   ~ 250 /sec
     startTime = std::chrono::high_resolution_clock::now();
-    for(uint64_t i=0; i < ITERATIONS_MEGA_LARGE; i++){
+    for(uint64_t i=0; i < ITERATIONS_ZERO_COPY; i++){
         volatile uint32_t tmp = *(uint32_t*)(megaLargeBuf1 + 6);
         tmp = tmp + (uint32_t)i;
         *(uint32_t*)(megaLargeBuf1 + 6) = tmp;
     }
     endTime = std::chrono::high_resolution_clock::now();
-    std::cout << "zero-copy-edit mega: " << (ITERATIONS_MEGA_LARGE * 1000000) / std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count() << "/s" << std::endl;
+    std::cout << "zero-copy-edit mega: " << (ITERATIONS_ZERO_COPY * 1000000) / std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count() << "/s" << std::endl;
 
 
 
